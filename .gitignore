@@ -1,0 +1,6 @@
+.vs/*
+Debug/*
+Release/*
+miniSQL/Data_files/*
+miniSQL/Debug/*
+miniSQL/Release/*
