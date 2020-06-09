@@ -4,3 +4,5 @@ Release/*
 miniSQL/Data_files/*
 miniSQL/Debug/*
 miniSQL/Release/*
+miniSQL.sln
+miniSQL/miniSQL.*
