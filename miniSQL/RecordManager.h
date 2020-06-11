@@ -8,7 +8,7 @@
 #include "Tuple.h"
 #include "buffermanager.h"
 
-
+extern BufferManager buffer_manager;
 class RecordManager
 {
 private:
@@ -22,19 +22,19 @@ public:
     * Function: create all files when create a table
     * Return:
     */
-    int CreateTableAllFile(BufferManager &buffer_manager,const std::string &TableName);
+    int CreateTableAllFile(const std::string &TableName);
     /*
      * Function: delete all files when drop a table
      * Return:
     */
-    int DropTableAllFile(BufferManager &buffer_manager,const std:: string &TableName);
+    int DropTableAllFile(const std:: string &TableName);
     /*
      * Function: Insert record into a table
      * Return: 
      * TableName: the name of the table
      * record: the data need to be inserted
     */
-    int InsertRecord(BufferManager &buffer_manager,const std::string &TableName,const Tuple &tuple);
+    int InsertRecord(const std::string &TableName,const Tuple &tuple);
     /*
     * Function: Delete all record of a table
     * Return: (int)the number of the record deleted
@@ -43,7 +43,7 @@ public:
     * return the number of the record deleted
     * Exception:1.Table dost not exist
     * */
-    int DeleteRecord(BufferManager &buffer_manager,const std::string &TableName);
+    int DeleteRecord(const std::string &TableName);
     /**
      * Function: Delete record fits conditions in a table
      * Return: (int)the number of the records deleted
@@ -53,7 +53,7 @@ public:
      * Exception:1.Table does not exist;2.Wrong type of data in condition
      * 暂时所有条目、条件均为字符串进行测试
     */
-    int DeleteRecord(BufferManager &buffer_manager,const std::string &TableName,const std::vector<Condition> &ConditionList);
+    int DeleteRecord(const std::string &TableName,const std::vector<Condition> &ConditionList);
     /*
     * Function: Select all records of a table
     * Return: (int) the number of the records selected
@@ -62,7 +62,7 @@ public:
     * res: the string stored the records selected
     * Exception:1.Table dost not exist
     * */
-    int SelectRecord(BufferManager &buffer_manager,const std::string &TableName,std::string &res);
+    int SelectRecord(const std::string &TableName,std::string &res);
     /**
      * Function: Select record fits conditions in a table
      * Return: (int) the number of the records selected
@@ -73,7 +73,7 @@ public:
      * Exception:1.Table does not exist;2.Wrong type of data in condition
      * 暂时所有条目、条件均为字符串进行测试
     */
-    int SelectRecord(BufferManager &buffer_manager,const std::string &TableName,const std::vector<Condition> &ConditionList,std::string &res);
+    int SelectRecord(const std::string &TableName,const std::vector<Condition> &ConditionList,std::string &res);
 
 };  
 

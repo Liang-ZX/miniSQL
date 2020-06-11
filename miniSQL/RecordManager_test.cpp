@@ -1,13 +1,14 @@
-/*#include "RecordManager.h"
+#include "RecordManager.h"
 #include <iostream>
 #include <cstring>
 #include <ctime>
-// #include <>
+
+BufferManager buffer_manager("testrecord");
+
 using namespace std;
 int main()
 {
     RecordManager rmanager;
-    BufferManager bmanager("testrecord");
     // item temp;
     // temp.i_data = 10;
     // temp.type = 0;
@@ -34,30 +35,30 @@ int main()
     ConditionList.push_back(Condition1);
     Tuple tmp;
     // tmp.AddItem()
-    rmanager.CreateTableAllFile(bmanager,"testcreate");
+    rmanager.CreateTableAllFile("testcreate");
     int x = 0;
     while(1)
     {
         cin >> x;
-        if (x == 1) rmanager.DeleteRecord(bmanager,"testcreate");
-        else if(x == 2) rmanager.DeleteRecord(bmanager,"testcreate",ConditionList);
+        if (x == 1) rmanager.DeleteRecord("testcreate");
+        else if(x == 2) rmanager.DeleteRecord("testcreate",ConditionList);
         else if (x == 3) 
         {
             string temp = "";
-            int record_num = rmanager.SelectRecord(bmanager,"testcreate",temp);
+            int record_num = rmanager.SelectRecord("testcreate",temp);
             cout << temp;
             cout << record_num << endl;
         }
         else if (x == 0) 
         {
-            rmanager.InsertRecord(bmanager,"testcreate",tuple0);
-            rmanager.InsertRecord(bmanager,"testcreate",tuple1);
-            rmanager.InsertRecord(bmanager,"testcreate",tuple2);
+            rmanager.InsertRecord("testcreate",tuple0);
+            rmanager.InsertRecord("testcreate",tuple1);
+            rmanager.InsertRecord("testcreate",tuple2);
         }
         else if(x == 4)
         {
             string temp = "";
-            int record_num = rmanager.SelectRecord(bmanager,"testcreate",ConditionList,temp);
+            int record_num = rmanager.SelectRecord("testcreate",ConditionList,temp);
             cout << temp;
             cout <<record_num << endl;
         }
@@ -65,5 +66,5 @@ int main()
     }
     return 0;
     // getchar();
-    // rmanager.DropTableAllFile(bmanager,"testcreate");
-}*/
+    // rmanager.DropTableAllFile("testcreate");
+}

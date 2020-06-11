@@ -1,6 +1,6 @@
 #include "RecordManager.h"
 
-int RecordManager::CreateTableAllFile(BufferManager &buffer_manager,const std::string &TableName)
+int RecordManager::CreateTableAllFile(const std::string &TableName)
 {
     cout << "Debug(Record):begin create " << TableName << "\n";
     if(buffer_manager.CheckTableExist(TableName))
@@ -16,7 +16,7 @@ int RecordManager::CreateTableAllFile(BufferManager &buffer_manager,const std::s
     return 1;
 }
 
-int RecordManager::DropTableAllFile(BufferManager &buffer_manager,const std::string &TableName)
+int RecordManager::DropTableAllFile(const std::string &TableName)
 {
     if(buffer_manager.CheckTableExist(TableName) == false)
     {
@@ -36,7 +36,7 @@ int RecordManager::DropTableAllFile(BufferManager &buffer_manager,const std::str
     return 1;
 }
 
-int RecordManager::InsertRecord(BufferManager &buffer_manager,const std::string &TableName,const Tuple &tuple)
+int RecordManager::InsertRecord(const std::string &TableName,const Tuple &tuple)
 {
     clock_t begin_time = clock(),end_time = clock();
     if (buffer_manager.CheckTableExist(TableName) == false)
@@ -75,7 +75,7 @@ int RecordManager::InsertRecord(BufferManager &buffer_manager,const std::string 
     return 1;
 }
 
-int RecordManager::DeleteRecord(BufferManager &buffer_manager,const std::string &TableName)
+int RecordManager::DeleteRecord(const std::string &TableName)
 {
     clock_t begin_time = clock(),end_time = clock();
     if(buffer_manager.CheckTableExist(TableName) == false)
@@ -104,7 +104,7 @@ int RecordManager::DeleteRecord(BufferManager &buffer_manager,const std::string 
     return count;
 }
 
-int RecordManager::DeleteRecord(BufferManager &buffer_manager,const std::string &TableName,const std::vector<Condition> &ConditionList)
+int RecordManager::DeleteRecord(const std::string &TableName,const std::vector<Condition> &ConditionList)
 {
     clock_t begin_time = clock(), end_time = clock();
     if(buffer_manager.CheckTableExist(TableName) == false)
@@ -154,7 +154,7 @@ int RecordManager::DeleteRecord(BufferManager &buffer_manager,const std::string 
     return count;
 }
 
-int RecordManager::SelectRecord(BufferManager &buffer_manager,const std::string &TableName,std::string &res)
+int RecordManager::SelectRecord(const std::string &TableName,std::string &res)
 {
     int count = 0;
     clock_t begin_time = clock(),end_time = clock();
@@ -194,7 +194,7 @@ int RecordManager::SelectRecord(BufferManager &buffer_manager,const std::string 
     return -1;
 }
 
-int RecordManager::SelectRecord(BufferManager &buffer_manager,const std::string &TableName,const std::vector<Condition> &ConditionList,std::string &res)
+int RecordManager::SelectRecord(const std::string &TableName,const std::vector<Condition> &ConditionList,std::string &res)
 {
     if(buffer_manager.CheckTableExist(TableName) == false)
     {
