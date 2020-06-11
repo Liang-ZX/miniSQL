@@ -7,14 +7,30 @@
 #include <ctime>
 #include "Tuple.h"
 #include "buffermanager.h"
+// #include "indexmanager.h"
+#include "CatalogManager.h"
 
 extern BufferManager buffer_manager;
+// extern Index_Manager index_manager;
+extern CatalogManager catalog_manager;
+
 class RecordManager
 {
 private:
     /**
-     * Check if the table exists
+     * Function: Check whether the Itemlist can be inserted into table(check type)
+     * Return: true for can be inserted
+     * Table: the table
+     * ItemList: the item list from tuple to be inserted 
     */
+    bool CheckAttribute(const Table &table,const std::vector<Item> &ItemList) const;
+    /**
+     * Function: Check whether the ConditionList can be compared with table(check type and exists)
+     * Return: true for can be compared
+     * Table: the table
+     * ConditionList: the ConditionList
+    */
+    bool CheckAttribute(const Table &table,const std::vector<Condition> &ConditionList) const;
 public:
     RecordManager(/* args */){}
     ~RecordManager(){}

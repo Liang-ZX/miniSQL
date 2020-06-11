@@ -3,12 +3,12 @@
 int RecordManager::CreateTableAllFile(const std::string &TableName)
 {
     cout << "Debug(Record):begin create " << TableName << "\n";
-    if(buffer_manager.CheckTableExist(TableName))
+    // if(buffer_manager.CheckTableExist(TableName))
+    if(catalog_manager.existTable(TableName))
     {
         cout << "Error(Record):Table with same name existed!\n";
         return 0;
     }
-    // const std::string str = "";
     buffer_manager.writeFile("",TableName,0,0);
     buffer_manager.writeFile("",TableName,1,0);
     buffer_manager.writeFile("exist",TableName,2,0); //创建catalog会有问题
@@ -18,14 +18,16 @@ int RecordManager::CreateTableAllFile(const std::string &TableName)
 
 int RecordManager::DropTableAllFile(const std::string &TableName)
 {
-    if(buffer_manager.CheckTableExist(TableName) == false)
+    // if(buffer_manager.CheckTableExist(TableName) == false)
+    if(catalog_manager.existTable(TableName) == false)
     {
         cout << "Error(Record):The table does not exist!\n";
         return 0;
     }
     cout << "Debug(Record):begin drop "<< TableName << "\n";
     std::string db_name = buffer_manager.GetDB_name();
-    //TODO直接释放所有相关block
+    //TODO释放所有相关block不写回
+    buffer_manager.writeBlockAll();
     std::string TableFile = "Data_files\\" + db_name + "\\table\\" + TableName + ".txt";
     std::string IndexFile = "Data_files\\" + db_name + "\\index\\" + TableName + ".txt";
     std::string CatalogFile = "Data_files\\" + db_name + "\\catalog\\" + TableName + ".txt";
@@ -39,19 +41,28 @@ int RecordManager::DropTableAllFile(const std::string &TableName)
 int RecordManager::InsertRecord(const std::string &TableName,const Tuple &tuple)
 {
     clock_t begin_time = clock(),end_time = clock();
-    if (buffer_manager.CheckTableExist(TableName) == false)
+    // if (buffer_manager.CheckTableExist(TableName) == false)
+    if (catalog_manager.existTable(TableName) == false)
     {
         end_time = clock();
         cout << end_time - begin_time << "ms\n";
         cout << "Error(Record):The table does not exit.\n";
         return 0;
     }
-    //TODO处理catalog,index的冲突
+    //check attributes type
+    Table table = catalog_manager.getTable(TableName);
+    if (CheckAttribute(table,tuple.GetItemList()) == false)
+    {
+        cout << "Error(Record):The attribute types are incorrect!\n";
+        return 0;
+    }
+    //TODO处理index的冲突
     std::string record;
     record.assign(tuple.TupletoString());
     cout << "Debug(Record):Begin insert record.\n";
     int record_length = record.length();
-    for(int block_num = 0;block_num < MAX_BLOCK_NUM;block_num++)
+    // int FileBlockNum = table.blockNum;
+    for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
         std::string block_data = buffer_manager.readFile(TableName,0,block_num,0);
         int begin_address = block_data.find_last_of(RECORD_SEPARATOR);
@@ -67,6 +78,8 @@ int RecordManager::InsertRecord(const std::string &TableName,const Tuple &tuple)
             // buffer_manager.unsetBlockPin(TableName,0,block_num);
             break;
         }
+        //如果当前块全部放满，则新增块
+        if(block_num == table.blockNum - 1) table.blockNum++;
         // buffer_manager.unsetBlockPin(TableName,0,block_num);
     }
     end_time = clock();
@@ -78,7 +91,8 @@ int RecordManager::InsertRecord(const std::string &TableName,const Tuple &tuple)
 int RecordManager::DeleteRecord(const std::string &TableName)
 {
     clock_t begin_time = clock(),end_time = clock();
-    if(buffer_manager.CheckTableExist(TableName) == false)
+    // if(buffer_manager.CheckTableExist(TableName) == false)
+    if(catalog_manager.existTable(TableName) == false)
     {
         end_time = clock();
         cout << end_time - begin_time << "ms\n";
@@ -87,10 +101,11 @@ int RecordManager::DeleteRecord(const std::string &TableName)
     }
     cout << "Debug(Record):Start delete all of " << TableName << endl;
     int count = 0;
-    for(int block_num = 0;block_num < MAX_BLOCK_NUM;block_num++)
+    Table table = catalog_manager.getTable(TableName);
+    for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
         std::string teststr = buffer_manager.readFile(TableName,0,block_num);
-        if(teststr.length() == 0) break;    //若某块为空则结束（不严谨
+        // if(teststr.length() == 0) break;    //若某块为空则结束（不严谨
         int block_length = teststr.length();
         for(int i = 0;i < block_length;i++) 
             if(teststr[i] == RECORD_SEPARATOR) count++;
@@ -107,7 +122,8 @@ int RecordManager::DeleteRecord(const std::string &TableName)
 int RecordManager::DeleteRecord(const std::string &TableName,const std::vector<Condition> &ConditionList)
 {
     clock_t begin_time = clock(), end_time = clock();
-    if(buffer_manager.CheckTableExist(TableName) == false)
+    // if(buffer_manager.CheckTableExist(TableName) == false)
+    if(catalog_manager.existTable(TableName) == false)
     {
         end_time = clock();
         cout << end_time - begin_time << "ms\n";
@@ -115,6 +131,8 @@ int RecordManager::DeleteRecord(const std::string &TableName,const std::vector<C
         return -1;
     }
     //TODO确认ConditionList中Attribute存在且数据类型无误
+    Table table = catalog_manager.getTable(TableName);
+    
     cout << "Debug(Record):Start delete record fit conditions in " << TableName << endl;
     int count = 0;
     //TODO若有index则调用相关函数进行定位BLOCK
@@ -233,4 +251,11 @@ int RecordManager::SelectRecord(const std::string &TableName,const std::vector<C
         // buffer_manager.writeFile(block_data,TableName,0,block_num);
     }
     return count;
+}
+
+bool RecordManager::CheckAttribute(const Table &table,const std::vector<Item> &ItemList) const
+{
+    if (table.attriNum != ItemList.size()) return false;
+    for(int i = 0;i < table.attriNum;i++) if(table.attributes[i].type != ItemList[i].type) return false;
+    return true;
 }

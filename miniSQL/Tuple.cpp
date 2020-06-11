@@ -67,3 +67,8 @@ std::string Tuple::TupletoString() const
     record.push_back(RECORD_SEPARATOR);
     return record;
 }
+
+const std::vector<Item> &Tuple::GetItemList() const
+{
+    return ItemList;
+}

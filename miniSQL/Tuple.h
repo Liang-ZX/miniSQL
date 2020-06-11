@@ -47,6 +47,10 @@ class Tuple
 private:
     std::vector<Item> ItemList;
 public:
+    /**
+     * Return the ItemList
+    */
+    const std::vector<Item> &GetItemList() const;
     std::string TupletoString() const;
     void AddItem(const Item &item);
     void AddItem(const std::string &str);
