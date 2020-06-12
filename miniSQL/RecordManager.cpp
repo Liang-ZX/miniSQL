@@ -132,7 +132,11 @@ int RecordManager::DeleteRecord(const std::string &TableName,const std::vector<C
     }
     //确认ConditionList中Attribute存在且数据类型无误
     Table table = catalog_manager.getTable(TableName);
-    if(CheckAttribute(table,ConditionList) == false) return 0;
+    if(CheckAttribute(table,ConditionList) == false) 
+    {
+        cout << "Debug(Record):Condition type false!\n";
+        return 0;
+    }
 
     cout << "Debug(Record):Start delete record fit conditions in " << TableName << endl;
     int count = 0;
@@ -149,24 +153,31 @@ int RecordManager::DeleteRecord(const std::string &TableName,const std::vector<C
         //调用indexmanager
         while(record_end != -1 && record_begin < block_length)
         {
-            bool is_delete = 0;
-            
-            for(int condition_id = 0;condition_id < ConditionList.size();condition_id++)
+            if(CheckConditionList(table,block_data.substr(record_begin,record_end - record_begin),ConditionList)) 
             {
-                int pos = block_data.find(ConditionList[condition_id].item.str_data.c_str(),record_begin);
-                cout << condition_id << "  " << pos <<  ConditionList[condition_id].item.str_data <<endl;
-                if(pos != -1 && pos < record_end)
-                {
-                    block_data.replace(record_begin,record_end - record_begin + 1,"");
-                    is_delete = 1;
-                    count++;
-                    break;
-                }
+                block_data.replace(record_begin,record_end - record_begin + 1,"");
+                count++;
+                break;
             }
-            if (!is_delete) record_begin = record_end + 1; 
-            record_end = block_data.find(RECORD_SEPARATOR,record_begin);
-            // else record_
         }
+        // {
+        //     bool is_delete = 0;
+        //     for(int condition_id = 0;condition_id < ConditionList.size();condition_id++)
+        //     {
+        //         int pos = block_data.find(ConditionList[condition_id].item.str_data.c_str(),record_begin);
+        //         cout << condition_id << "  " << pos <<  ConditionList[condition_id].item.str_data <<endl;
+        //         if(pos != -1 && pos < record_end)
+        //         {
+        //             block_data.replace(record_begin,record_end - record_begin + 1,"");
+        //             is_delete = 1;
+        //             count++;
+        //             break;
+        //         }
+        //     }
+        //     if (!is_delete) record_begin = record_end + 1; 
+        //     record_end = block_data.find(RECORD_SEPARATOR,record_begin);
+        //     // else record_
+        // }
         buffer_manager.writeFile(block_data,TableName,0,block_num);
     }
     end_time = clock();
@@ -263,7 +274,6 @@ bool RecordManager::CheckAttribute(const Table &table,const std::vector<Item> &I
     return true;
 }
 
-
 bool RecordManager::CheckAttribute(const Table &table,const std::vector<Condition> &ConditionList) const
 {
     // if (table.attriNum != ItemList.size()) return false;
@@ -350,6 +360,7 @@ bool RecordManager::CheckCondition(const Item &item,const Condition &condition) 
     else if(item.type == -1) return CheckConditionData(item.f_data,condition.relation,condition.item.f_data);
     else if(item.type > 0 && item.type <= 255) return CheckConditionData(item.str_data,condition.relation,condition.item.str_data);
 }
+
 template<typename T>
 bool RecordManager::CheckConditionData(const T &item_data,Relation relation,const T &condition_data)const
 {
