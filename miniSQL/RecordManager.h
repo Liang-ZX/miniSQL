@@ -18,6 +18,33 @@ class RecordManager
 {
 private:
     /**
+     * 
+    */
+    bool SameType(short AttrType,short ItemType) const;
+    /**
+     * Function: Check if a condition data is fit
+     * 
+    */
+    template<typename T>
+    bool CheckConditionData(const T &item_data,Relation relation,const T &condition_data) const;
+    /**
+     * Function:Check if a item is fit a Condition
+    */
+    bool CheckCondition(const Item &item,const Condition &condition) const;
+    /**
+     * Function: Check if a Record is fit ConditionList
+     * table: to get the data type
+     * Record: the record in string type
+     * Conditionlist: the Condition list
+    */
+    bool CheckConditionList(const Table &table,const std::string &Record,const std::vector<Condition> ConditionList);
+    /**
+     * Function: convert a Record into a Tuple
+     * Table: table for get the item's type
+     * Record: |xxx|12.3|123|
+    */
+    const Tuple &RecordtoTuple(const Table &table,const std::string &Record) const;
+    /**
      * Function: Check whether the Itemlist can be inserted into table(check type)
      * Return: true for can be inserted
      * Table: the table

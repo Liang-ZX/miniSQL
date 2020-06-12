@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+// #include "CatalogMangaer.h"
 
 #define RECORD_SEPARATOR '$'
 #define ITEM_SEPARATOR '|'
@@ -24,7 +25,7 @@ typedef enum{
 }Relation;
 /**
  * str_data,i_data_f_data are the three possible type
- * type = 1~255 string
+ * type = 1~255 char(n)
  * type = 0 int 
  * type = -1 float
  */
@@ -44,20 +45,26 @@ struct Condition{
 
 class Tuple
 {
-private:
-    std::vector<Item> ItemList;
+// private:
 public:
+    std::vector<Item> ItemList;
     /**
      * Return the ItemList
     */
     const std::vector<Item> &GetItemList() const;
+    /**
+     * Function: convert a Record into a Tuple
+     * Record: |xxx|12.3|123|
+    */
+    // const std::vector<Item> &RecordtoTuple(const std::string &Record) const;
     std::string TupletoString() const;
     void AddItem(const Item &item);
     void AddItem(const std::string &str);
     void AddItem(const int &num);
     void AddItem(const double &num);
     //'abcd',123,12.4,'xa'
-    Tuple(const std::string &str);
+    // Tuple(const std::string &str);
+    
     Tuple(/* args */){}
     ~Tuple(){}
 };

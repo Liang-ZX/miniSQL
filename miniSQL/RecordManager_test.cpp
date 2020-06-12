@@ -19,6 +19,7 @@ int main()
     tuple0.AddItem("LastName");
     tuple0.AddItem("Robin");
     tuple0.AddItem("Black");        //FirstName|LastName|Robin|Black
+    tuple1.AddItem(0.0);
     tuple1.AddItem("FirstName");
     tuple1.AddItem("AAAAName");
     tuple1.AddItem("Alice");
