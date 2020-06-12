@@ -18,33 +18,38 @@ class RecordManager
 {
 private:
     /**
-     * 
+     * auxiliary function
+     * Check whether an ItemType fit the attribute's type
     */
     bool SameType(short AttrType,short ItemType) const;
     /**
-     * Function: Check if a condition data is fit
-     * 
+     * auxiliary function
+     * Function: Check if an item's data is fit a condition
     */
     template<typename T>
     bool CheckConditionData(const T &item_data,Relation relation,const T &condition_data) const;
     /**
-     * Function:Check if a item is fit a Condition
+     * auxiliary function
+     * Function:Check if an item is fit a condition
     */
     bool CheckCondition(const Item &item,const Condition &condition) const;
     /**
+     * auxiliary function
      * Function: Check if a Record is fit ConditionList
      * table: to get the data type
-     * Record: the record in string type
+     * Record: the record in string type    |temp|123.12|12|
      * Conditionlist: the Condition list
     */
-    bool CheckConditionList(const Table &table,const std::string &Record,const std::vector<Condition> ConditionList);
+    bool CheckConditionList(const Table &table,const std::string &Record,const std::vector<Condition> &ConditionList) const;
     /**
+     * auxiliary function
      * Function: convert a Record into a Tuple
      * Table: table for get the item's type
      * Record: |xxx|12.3|123|
     */
-    const Tuple &RecordtoTuple(const Table &table,const std::string &Record) const;
+    const Tuple RecordtoTuple(const Table &table,const std::string &Record) const;
     /**
+     * auxiliary function
      * Function: Check whether the Itemlist can be inserted into table(check type)
      * Return: true for can be inserted
      * Table: the table
@@ -52,12 +57,30 @@ private:
     */
     bool CheckAttribute(const Table &table,const std::vector<Item> &ItemList) const;
     /**
+     * auxiliary function
      * Function: Check whether the ConditionList can be compared with table(check type and exists)
      * Return: true for can be compared
      * Table: the table
      * ConditionList: the ConditionList
     */
     bool CheckAttribute(const Table &table,const std::vector<Condition> &ConditionList) const;
+    /**
+     * auxiliary function
+     * Function: Delete records fit ConditionList in block_data(string)
+    */
+    int DeleteRecord(const Table &table,std::string &block_data,const std::vector<Condition> &ConditionList) const;
+    /**
+     * auxiliary function
+     * Function: Convert data(string) in a block to vector<Tuple>
+    */
+    std::vector<Tuple> &BlocktoTuples(const Table &table,std::string &block_data)const;
+    /**
+     * auxiliary function
+     * Function: Select Record(string) in a  block_data(string) stored in res(string)
+     * Return: The number of the Records selected
+     * 
+    */
+    int SelectRecord(const Table &table,const std::string &block_data,const std::vector<Condition> &ConditionList,std::string res) const;
 public:
     RecordManager(/* args */){}
     ~RecordManager(){}

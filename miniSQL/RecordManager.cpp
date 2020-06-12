@@ -56,32 +56,72 @@ int RecordManager::InsertRecord(const std::string &TableName,const Tuple &tuple)
         cout << "Error(Record):The attribute types are incorrect!\n";
         return 0;
     }
-    //TODO处理index的冲突
+    //TODO处理unique的冲突
     std::string record;
     record.assign(tuple.TupletoString());
     cout << "Debug(Record):Begin insert record.\n";
     int record_length = record.length();
-    // int FileBlockNum = table.blockNum;
     for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
-        std::string block_data = buffer_manager.readFile(TableName,0,block_num,0);
-        int begin_address = block_data.find_last_of(RECORD_SEPARATOR);
-        if(begin_address == -1) begin_address = 0;
-        else begin_address++;
-        int usable_space = BLOCK_SIZE - begin_address;
-        if(usable_space >= record_length)
+        std::string block_data = buffer_manager.readFile(TableName,0,block_num);
+        int data_length = block_data.length();
+        int usable_space = 0;
+        int begin_address = -1,end_address = -1;
+        bool FlagDone = 0;
+        for(int pos = 0;pos < BLOCK_SIZE;pos++)
         {
-            cout << "Debug(Record):Substring of block:" << block_data << endl;
-            cout << "Debug(Record):Get Insert block_num" << block_num << " begin_address " << begin_address <<"!\n" << record << endl;
-            block_data.replace(begin_address,record_length,record);
-            buffer_manager.writeFile(block_data,TableName,0,block_num);
-            // buffer_manager.unsetBlockPin(TableName,0,block_num);
-            break;
+            if(pos > data_length)   //未使用过的空间
+            {
+                if(usable_space == 0) begin_address = pos;
+                usable_space += BLOCK_SIZE - data_length;
+            }
+            else if(block_data[pos] == EMPTY_CHAR)  //删除过的空间
+            {
+                if (usable_space == 0) begin_address = end_address = pos;
+                usable_space++;
+            }
+            else if(block_data[pos] != EMPTY_CHAR)  //占用的空间
+            {
+                usable_space = 0;
+            }
+            if(usable_space >= record_length)   //找到了足够空间
+            {
+                end_address = pos;
+                block_data.replace(begin_address,record_length,record);     //length?last?
+                buffer_manager.writeFile(block_data,TableName,0,block_num);
+                FlagDone = 1;                   //set flag
+                break;
+                // block_data.replace()
+            }
+            else if(pos > data_length)          //该块空间不足
+            {
+                break;
+            }
         }
-        //如果当前块全部放满，则新增块
-        if(block_num == table.blockNum - 1) table.blockNum++;
-        // buffer_manager.unsetBlockPin(TableName,0,block_num);
+        if(FlagDone) break;
+        if(block_num == table.blockNum - 1) table.blockNum++;       //所有块都没有空间，启用新块
     }
+    /*
+    // {
+    //     std::string block_data = buffer_manager.readFile(TableName,0,block_num,0);
+    //     int begin_address = block_data.find_last_of(RECORD_SEPARATOR);
+    //     if(begin_address == -1) begin_address = 0;
+    //     else begin_address++;
+    //     int usable_space = BLOCK_SIZE - begin_address;
+    //     if(usable_space >= record_length)
+    //     {
+    //         cout << "Debug(Record):Substring of block:" << block_data << endl;
+    //         cout << "Debug(Record):Get Insert block_num" << block_num << " begin_address " << begin_address <<"!\n" << record << endl;
+    //         block_data.replace(begin_address,record_length,record);
+    //         buffer_manager.writeFile(block_data,TableName,0,block_num);
+    //         // buffer_manager.unsetBlockPin(TableName,0,block_num);
+    //         break;
+    //     }
+    //     //如果当前块全部放满，则新增块
+    //     if(block_num == table.blockNum - 1) table.blockNum++;
+    //     // buffer_manager.unsetBlockPin(TableName,0,block_num);
+    // }
+    */
     end_time = clock();
     cout << end_time - begin_time << "ms\n";
     cout << "Debug(Record):End insert record.\n";
@@ -147,19 +187,12 @@ int RecordManager::DeleteRecord(const std::string &TableName,const std::vector<C
         cout << "Debug(Record):In delete conditionally, block:" << block_num << endl;
         std::string block_data = buffer_manager.readFile(TableName,0,block_num);
         // if(block_data.length() == 0) break;  //若某块为空则结束（不严谨
-        int block_length = block_data.length();
-        int record_begin = 0;
-        int record_end = block_data.find(RECORD_SEPARATOR,record_begin);
-        //调用indexmanager
-        while(record_end != -1 && record_begin < block_length)
-        {
-            if(CheckConditionList(table,block_data.substr(record_begin,record_end - record_begin),ConditionList)) 
-            {
-                block_data.replace(record_begin,record_end - record_begin + 1,"");
-                count++;
-                break;
-            }
-        }
+        // int block_length = block_data.length();
+        // int record_begin = 0;
+        // int record_end = block_data.find(RECORD_SEPARATOR,record_begin);
+        //TODO调用indexmanager查找位置
+        count += DeleteRecord(table,block_data,ConditionList);
+        // while(record_end != -1 && record_begin < block_length)
         // {
         //     bool is_delete = 0;
         //     for(int condition_id = 0;condition_id < ConditionList.size();condition_id++)
@@ -190,7 +223,7 @@ int RecordManager::SelectRecord(const std::string &TableName,std::string &res)
 {
     int count = 0;
     clock_t begin_time = clock(),end_time = clock();
-    if(buffer_manager.CheckTableExist(TableName) == false)
+    if(catalog_manager.existTable(TableName) == false)      //table not exist
     {
         end_time = clock();
         cout << end_time - begin_time << "ms\n";
@@ -198,72 +231,96 @@ int RecordManager::SelectRecord(const std::string &TableName,std::string &res)
         return -1;
     }
     // std::string res = "";
-    for(int block_num = 0;block_num < MAX_BLOCK_NUM;block_num++)
+    Table table = catalog_manager.getTable(TableName);
+    for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
         std::string block_data = buffer_manager.readFile(TableName,0,block_num);
         cout << "Debug(Record):In select all:block " << block_num << endl <<  block_data;
-        int block_length = block_data.length();
-        if(block_length == 0)   //不严谨
+        int data_length = block_data.length();
+        for(int pos = 0;pos < data_length;pos++)    if(block_data[pos] == ITEM_SEPARATOR)//find record head |.....$
         {
-            end_time = clock();
-            cout << end_time - begin_time << "ms\n";
-            // res = res + "\0";
-            for(int i = 0;i < res.length();i++)
-            {
-                if(res[i] == RECORD_SEPARATOR) 
-                {
-                    res[i] = '\n';
-                    count++;
-                }
-            }
-            return count;
-        }
-        else 
-        {
-            res = res + block_data.substr(0,block_length);
+            int end_address = block_data.find(RECORD_SEPARATOR,pos);
+            count++;
+            res = res + block_data.substr(pos,end_address - pos);
+            res = res + "\n";
+            pos = end_address + 1;
         }
     }
-    return -1;
+    return count;
+    // {
+    //     std::string block_data = buffer_manager.readFile(TableName,0,block_num);
+    //     cout << "Debug(Record):In select all:block " << block_num << endl <<  block_data;
+    //     int block_length = block_data.length();
+    //     if(block_length == 0)   //不严谨
+    //     {
+    //         end_time = clock();
+    //         cout << end_time - begin_time << "ms\n";
+    //         // res = res + "\0";
+    //         for(int i = 0;i < res.length();i++)
+    //         {
+    //             if(res[i] == RECORD_SEPARATOR) 
+    //             {
+    //                 res[i] = '\n';
+    //                 count++;
+    //             }
+    //         }
+    //         return count;
+    //     }
+    //     else 
+    //     {
+    //         res = res + block_data.substr(0,block_length);
+    //     }
+    // }
+    // return -1;
 }
 
 int RecordManager::SelectRecord(const std::string &TableName,const std::vector<Condition> &ConditionList,std::string &res)
 {
-    if(buffer_manager.CheckTableExist(TableName) == false)
+    if(catalog_manager.existTable(TableName) == false)
     {
         cout << "Debug(Record):No such table!\n";
         return -1;
     }
-
-    //TODO确认ConditionList中Attribute存在且数据类型无误
-    cout << "Debug(Record):Start delete record fit conditions in " << TableName << endl;
+    Table table = catalog_manager.getTable(TableName);
+    // CheckConditionList(table,)
+    if(CheckAttribute(table,ConditionList) == false)
+    {
+        cout << "Debug(Record):Attribute error in SelectRecord\n";
+        return -1;
+    }
+    cout << "Debug(Record):Start select record fit conditions in " << TableName << endl;
     int count = 0;
     //TODO若有index则调用相关函数进行定位BLOCK
-    for(int block_num = 0;block_num < MAX_BLOCK_NUM;block_num++)
+    for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
         std::string block_data = buffer_manager.readFile(TableName,0,block_num);
-        int block_length = block_data.length();
-        if (block_length == 0) break;   //不严谨
-        int record_begin = 0;
-        int record_end = block_data.find(RECORD_SEPARATOR,record_begin);
-        while(record_end != -1 && record_begin < block_length)
-        {
-            for(int condition_id = 0;condition_id < ConditionList.size();condition_id++)
-            {
-                int pos = block_data.find(ConditionList[condition_id].item.str_data.c_str(),record_begin);
-                cout << condition_id << "  " << pos <<  ConditionList[condition_id].item.str_data <<endl;
-                if(pos != -1 && pos < record_end)
-                {
-                    res = res + block_data.substr(record_begin,record_end - record_begin);
-                    res = res + '\n';
-                    count++;
-                    break;
-                }
-            }
-            record_begin = record_end + 1; 
-            record_end = block_data.find(RECORD_SEPARATOR,record_begin);
-        }
-        // buffer_manager.writeFile(block_data,TableName,0,block_num);
+        int data_length = block_data.length();
+        count += SelectRecord(table,block_data,ConditionList,res);
     }
+    // {
+    //     std::string block_data = buffer_manager.readFile(TableName,0,block_num);
+    //     int block_length = block_data.length();
+    //     if (block_length == 0) break;   //不严谨
+    //     int record_begin = 0;
+    //     int record_end = block_data.find(RECORD_SEPARATOR,record_begin);
+    //     while(record_end != -1 && record_begin < block_length)
+    //     {
+    //         for(int condition_id = 0;condition_id < ConditionList.size();condition_id++)
+    //         {
+    //             int pos = block_data.find(ConditionList[condition_id].item.str_data.c_str(),record_begin);
+    //             cout << condition_id << "  " << pos <<  ConditionList[condition_id].item.str_data <<endl;
+    //             if(pos != -1 && pos < record_end)
+    //             {
+    //                 res = res + block_data.substr(record_begin,record_end - record_begin);
+    //                 res = res + '\n';
+    //                 count++;
+    //                 break;
+    //             }
+    //         }
+    //         record_begin = record_end + 1; 
+    //         record_end = block_data.find(RECORD_SEPARATOR,record_begin);
+    //     }
+    // }
     return count;
 }
 
@@ -305,7 +362,7 @@ bool RecordManager::CheckAttribute(const Table &table,const std::vector<Conditio
     return true;
 }
 
-const Tuple &RecordManager::RecordtoTuple(const Table &table,const std::string &Record) const
+const Tuple RecordManager::RecordtoTuple(const Table &table,const std::string &Record) const
 {
     int item_begin = 1;
     int item_end = Record.find(ITEM_SEPARATOR);
@@ -334,7 +391,7 @@ const Tuple &RecordManager::RecordtoTuple(const Table &table,const std::string &
     return result;
 }
 
-bool RecordManager::CheckConditionList(const Table &table,const std::string &Record,const std::vector<Condition> ConditionList)
+bool RecordManager::CheckConditionList(const Table &table,const std::string &Record,const std::vector<Condition> &ConditionList) const
 {
     Tuple tuple = RecordtoTuple(table,Record);
     for(int condition_id = 0;condition_id < ConditionList.size();condition_id++)
@@ -359,6 +416,7 @@ bool RecordManager::CheckCondition(const Item &item,const Condition &condition) 
     if(item.type == 0) return CheckConditionData(item.i_data,condition.relation,condition.item.i_data);
     else if(item.type == -1) return CheckConditionData(item.f_data,condition.relation,condition.item.f_data);
     else if(item.type > 0 && item.type <= 255) return CheckConditionData(item.str_data,condition.relation,condition.item.str_data);
+    return 0;
 }
 
 template<typename T>
@@ -369,10 +427,67 @@ bool RecordManager::CheckConditionData(const T &item_data,Relation relation,cons
     else if(relation == EQUAL) return item_data == condition_data;
     else if(relation == LESS_EQUAL) return item_data <= condition_data;
     else if(relation == LESS) return item_data < condition_data;
+    else return 0;
 }
 
 bool RecordManager::SameType(short AttrType,short ItemType) const
 {
     if(AttrType == ItemType || ((ItemType > 0) && (ItemType <= AttrType))) return 1;
     else return 0;
+}
+
+int RecordManager::DeleteRecord(const Table &table,std::string &block_data,const std::vector<Condition> &ConditionList) const
+{
+    int block_length = block_data.length();
+    int count = 0;
+    for(int pos = 0;pos < block_length;pos++)
+    {
+        if(block_data[pos] == ITEM_SEPARATOR)       ///head of record |......$
+        {
+            int end_address = block_data.find(RECORD_SEPARATOR,pos);
+            if(CheckConditionList(table,block_data.substr(pos,end_address - pos),ConditionList))
+            {
+                count++;
+                // block_data.replace();
+                for(int i = pos;i <= end_address;i++) block_data[i] = EMPTY_CHAR;
+            }
+            pos = end_address + 1;
+        }
+    }
+    return count;
+}
+
+// std::vector<Tuple> &RecordManager::BlocktoTuples(const Table &table,std::string &block_data)const
+// {
+//     int block_length = block_data.length();
+//     for(int pos = 0;pos < block_length;pos++)
+//     {
+//         if(block_data[pos] == ITEM_SEPARATOR) //head of record |......$
+//         {
+//             int end_address = block_data.find(RECORD_SEPARATOR,pos);
+//             // Tuple tp = RecordtoTuple(table,block_data.substr(pos,end_address - pos));
+//             // if(CheckConditionList(table,block_data.substr(pos,end_address - pos),CheckConditionList))
+//         }
+//     }
+// }
+
+int RecordManager::SelectRecord(const Table &table,const std::string &block_data,const std::vector<Condition> &ConditionList,std::string res) const
+{
+    int block_length = block_data.length();
+    int count = 0;
+    for(int pos = 0;pos < block_length;pos++)
+    {
+        if(block_data[pos] == ITEM_SEPARATOR)       ///head of record |......$
+        {
+            int end_address = block_data.find(RECORD_SEPARATOR,pos);
+            if(CheckConditionList(table,block_data.substr(pos,end_address - pos),ConditionList))
+            {
+                count++;
+                res = res + block_data.substr(pos,end_address - pos);
+                res = res + "\n";
+            }
+            pos = end_address;
+        }
+    }
+    return count;
 }

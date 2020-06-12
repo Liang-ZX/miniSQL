@@ -8,6 +8,7 @@
 
 #define RECORD_SEPARATOR '$'
 #define ITEM_SEPARATOR '|'
+#define EMPTY_CHAR '*'
 
 typedef enum{
     STRING,
