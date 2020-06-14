@@ -3,7 +3,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
 using namespace std;
+
 /*--------------Node--------------*/
 template<typename T>
 class Node {
@@ -19,7 +21,7 @@ public:
 	bool delete_key(unsigned int index);		//删除
 	bool search_key(T k, unsigned int &index);	//返回是否搜索到k，index：大于等于k的最小元素所在下标
 	void print();								//debug print
-private:
+public:
 	unsigned int rank;		 //阶
 	bool isleaf;			 //是否为叶节点
 	unsigned int key_num;	 //key的数量
@@ -50,10 +52,11 @@ public:
 	bool Delete_Key(T k);								  //删除
 	bool Search_Key(T k, int& block_num);				  //等值查询
 	bool Search_Key(T min, T max, vector<int>& block_num);//范围查询
-private:
+public:
 	string File;	      //文件名
 	int Rank;		      //阶
 	int Node_num;	      //节点数
+	int Leaf_num;		  //叶节点数
 	Node<T>* Root;		  //根节点
 	Node<T>* MostLeftLeaf;//左端叶节点
 };
@@ -74,7 +77,7 @@ Node<T>::Node(int rank, bool isleaf) :
 		pointer.push_back(NULL); //pointer: rank
 		if (isleaf) {
 			value.push_back(int());//value: rank-1
-		}			
+		}
 	}
 	pointer.push_back(NULL);
 	if (isleaf) {
@@ -141,6 +144,9 @@ Node<T>* Node<T>::split(T& up_key) {
 		//调整指针
 		nnode->last_leaf = this;
 		nnode->next_leaf = this->next_leaf;
+		if (this->next_leaf != NULL) {
+			this->next_leaf->last_leaf = nnode;
+		}
 		this->next_leaf = nnode;
 		nnode->father = this->father;
 		//调整key的个数
@@ -309,7 +315,7 @@ void Node<T>::print() {
 	for (unsigned int i = 0; i < key_num; i++) {
 		cout << key[i];
 		if (this->isleaf) {
-			cout <<"("<< value[i]<<")";
+			cout << "(" << value[i] << ")";
 		}
 		cout << "-";
 	}
@@ -321,7 +327,8 @@ template <typename T>
 BPT<T>::BPT(string File, int Rank) :
 	File(File),
 	Rank(Rank),
-	Node_num(1)
+	Node_num(1),
+	Leaf_num(1)
 {
 	Root = new Node<T>(Rank, true);
 	MostLeftLeaf = Root;
@@ -339,7 +346,7 @@ void BPT<T>::Delete_Tree(Node<T>* node) {
 	if (node == NULL) {
 		return;
 	}
-	else if(!node->isleaf){
+	else if (!node->isleaf) {
 		for (unsigned int i = 0; i <= node->key_num; i++) {
 			Delete_Tree(node->pointer[i]);
 			node->pointer[i] = NULL;
@@ -373,13 +380,16 @@ bool BPT<T>::Insert_Key(T k, int block_num) {
 	if (!Root) {
 		Root = new Node<T>(Rank, true);
 		Node_num = 1;
+		Leaf_num = 1;
 		MostLeftLeaf = Root;
+		Root->insert_key(k, block_num);
+		return true;
 	}
 	Node<T>* node = Search_Node(k);
 	unsigned int index = 0;
-	bool is_exist = node->search_key(k, index);
+	bool exist = node->search_key(k, index);
 	//存在
-	if (is_exist) {
+	if (exist) {
 		return false;
 	}
 	//不存在，则执行插入操作
@@ -401,7 +411,10 @@ bool BPT<T>::Insert_Adjust(Node<T>* node) {
 	if (node->isroot()) {
 		Node<T>* Root = new Node<T>(Rank, false);//新的根节点，且该节点一定不是叶节点
 		this->Root = Root;
-		Node_num++;//节点数增加1
+		Node_num++;//节点数再增加1
+		if (node->isleaf) {
+			Leaf_num++;
+		}
 		node->father = Root;
 		nnode->father = Root;
 		Root->insert_key(up_key);
@@ -411,6 +424,9 @@ bool BPT<T>::Insert_Adjust(Node<T>* node) {
 	}
 	//不是根节点
 	else {
+		if (node->isleaf) {
+			Leaf_num++;
+		}
 		unsigned int index = node->father->insert_key(up_key);
 		node->father->pointer[index + 1] = nnode;
 		nnode->father = node->father;
@@ -460,7 +476,7 @@ bool BPT<T>::Delete_Adjust(Node<T>* node) {
 		}
 	}
 	//叶节点
-	else if(node->isleaf){
+	else if (node->isleaf) {
 		//不需要调整
 		if (node->key_num >= node->min_key) {
 			return true;
@@ -478,7 +494,7 @@ bool BPT<T>::Delete_Adjust(Node<T>* node) {
 						node->key[i] = node->key[i - 1];
 						node->value[i] = node->value[i - 1];
 					}
-					//左叶节点给一个key和value放到改节点的0号位
+					//左叶节点给一个key和value放到该节点的0号位
 					node->key[0] = last_leaf->key[last_leaf->key_num - 1];
 					node->value[0] = last_leaf->value[last_leaf->key_num - 1];
 					node->key_num++;
@@ -509,12 +525,14 @@ bool BPT<T>::Delete_Adjust(Node<T>* node) {
 					}
 
 					father->delete_key(index);
+
 					last_leaf->next_leaf = node->next_leaf;
 					if (last_leaf->next_leaf != NULL) {
 						last_leaf->next_leaf->last_leaf = last_leaf;
 					}
 					delete node;
 					Node_num--;
+					Leaf_num--;
 					return Delete_Adjust(father);
 				}
 			}
@@ -563,6 +581,7 @@ bool BPT<T>::Delete_Adjust(Node<T>* node) {
 					}
 					delete next_leaf;
 					Node_num--;
+					Leaf_num--;
 					return Delete_Adjust(father);
 				}
 			}
@@ -589,7 +608,7 @@ bool BPT<T>::Delete_Adjust(Node<T>* node) {
 				left_node = father->pointer[index];
 				//借key
 				if (left_node->key_num > left_node->min_key) {
-					for (unsigned int i = node->key_num; i > 0 ; i--) {
+					for (unsigned int i = node->key_num; i > 0; i--) {
 						node->key[i] = node->key[i - 1];
 					}
 					for (unsigned int i = node->key_num + 1; i > 0; i--) {
@@ -689,7 +708,7 @@ bool BPT<T>::Search_Key(T k, int& block_num) {
 	}
 	return exist;
 }
-//范围查询, min< k <max
+//范围查询, min < k < max
 template<typename T>
 bool BPT<T>::Search_Key(T min, T max, vector<int>& block_num) {
 	unsigned int index1 = 0;//min
@@ -726,6 +745,7 @@ bool BPT<T>::Search_Key(T min, T max, vector<int>& block_num) {
 	}
 	return true;
 }
+
 /*-------------------debug print----------------------*/
 template<typename T>
 void BPT<T>::Print_Node(Node<T>* node) {
@@ -744,11 +764,11 @@ void BPT<T>::Print() {
 		return;
 	}
 	else {
-		Print_Node(Root);
+		Print_Node(Root);//打印所有节点
 		Node<T>* node = MostLeftLeaf;
-		for (int i = 0; ; i++) {
+		for (int i = 0; ; i++) {//打印叶节点
 			if (node != NULL) {
-				cout <<"leaf"<< "[" << i << "]: ";
+				cout << "leaf" << "[" << i << "]: ";
 				node->print();
 				node = node->next_leaf;
 			}
@@ -757,6 +777,7 @@ void BPT<T>::Print() {
 			}
 		}
 		cout << "Node_num: " << Node_num << endl;
+		cout << "Leaf_num: " << Leaf_num << endl;
 		return;
 	}
 }
