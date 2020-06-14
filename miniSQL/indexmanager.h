@@ -2,35 +2,48 @@
 #define _INDEXMANAGER_H
 #include "BPT.h"
 #include "Tuple.h"
+#include "buffermanager.h"
+#include "CatalogManager.h"
+#include <stdlib.h>
 #include <map>
+
 typedef TupleDataType Type;
+extern BufferManager buffer_manager;
+extern CatalogManager catalog_manager;
 
 class Index_Manager {
 public:
-	Index_Manager();
+	Index_Manager(string Table_name);
 	~Index_Manager();
-	void Create_Index(string File, Type type);			 //创建索引
-	void Drop_Index(string File, Type type);			 //删除索引
-	//检索key k，返回block_num
+	//从硬盘中读取已存在的索引文件
+	void Read_Index(string File, Type type, int n = 0);
+	//创建新的索引文件
+	//参数n为char(n)中的n，column为表格中的对应的属性所在的列数(从0计数)
+	void Create_Index(string File, int column, Type type, int n = 0);
+	//删除索引文件
+	void Drop_Index(string File, Type type);
+	//查询操作：
+	//五个重载函数，前三个为等值查询，后两个为范围查询
 	bool Search(string File, int k, int& block_num);
 	bool Search(string File, float k, int& block_num);
 	bool Search(string File, string k, int& block_num);
-	bool Search(string File, int min, int max, vector<int>& block_num);		//范围查询
-	bool Search(string File, float min, float max, vector<int>& block_num); //范围查询
-	//插入key k, block_num
+	bool Search(string File, int min, int max, vector<int>& block_num);
+	bool Search(string File, float min, float max, vector<int>& block_num);
+	//插入操作：
 	void Insert(string File, int k, int block_num);
 	void Insert(string File, float k, int block_num);
 	void Insert(string File, string k, int block_num);
-	//删除key k
+	//删除操作
 	void Delete(string File, int k);
 	void Delete(string File, float k);
 	void Delete(string File, string k);
 
 	void Debug_Print(string File, Type type);
 private:
-	map<string, BPT<int>*> BPT_Int;		//int类型B+树
-	map<string, BPT<float>*> BPT_Float;	//float类型B+树
-	map<string, BPT<string>*> BPT_String;	//char类型B+树
+	string Table_name;
+	map<string, BPT<int>*> BPT_Int;			//int类型B+树
+	map<string, BPT<float>*> BPT_Float;		//float类型B+树
+	map<string, BPT<string>*> BPT_String;	//string类型B+树
 };
 
 #endif

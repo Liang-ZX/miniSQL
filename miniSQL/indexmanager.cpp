@@ -1,89 +1,326 @@
 #include "indexmanager.h"
+// 表格：|123|324|244|3435|5351|$|3435|1245235|1223|4343|214|$**************|2424|242222|65576|33643|23623|$
+// 索引：213|34$123|24$2424|23$
 
-
-//构造函数和析构函数
-Index_Manager::Index_Manager() {
-
+//构造函数——√
+Index_Manager::Index_Manager(string Table_name) : Table_name(Table_name) {
+	vector<Index> index; //存储表上所有的索引信息
+	catalog_manager.getIndex(Table_name, index);
+	for (int i = 0; i < index.size(); i++) {//把所有已经创建的index文件写入内存
+		if (index[i].type == 0) {
+			Read_Index(index[i].indexName, INT);
+		}
+		else if (index[i].type == 1) {
+			Read_Index(index[i].indexName, FLOAT);
+		}
+		else {
+			Read_Index(index[i].indexName, STRING);
+		}
+	}
 }
+
+//析构函数——√
 Index_Manager::~Index_Manager() {
+	//将所有索引写回缓冲区
 	map<string, BPT<int>*>::iterator i_int;
 	map<string, BPT<float>*>::iterator i_float;
 	map<string, BPT<string>*>::iterator i_string;
 	for (i_int = BPT_Int.begin(); i_int != BPT_Int.end(); i_int++) {
+		Node<int>* Leaf = i_int->second->MostLeftLeaf;//第一个叶节点
+		string file_name = i_int->first;			  //索引文件名
+		for (int i = 0; Leaf != NULL; i++) {		  //遍历所有叶节点把数据重新写一遍
+			string data;
+			buffer_manager.writeFile("", file_name, 1, i);   //先把块i写空
+			for (int j = 0; j < Leaf->key_num; j++) {
+				string key = to_string(Leaf->key[j]);		 //key
+				string block_num = to_string(Leaf->value[j]);//table中key对应的block_num
+				data.append(key);
+				data.append("|");
+				data.append(block_num);
+				data.append("$");
+			}
+			buffer_manager.writeFile(data, file_name, 1, i);
+			Leaf = Leaf->next_leaf;
+		}
 		delete i_int->second;
 		BPT_Int.erase(i_int);
 	}
 	for (i_float = BPT_Float.begin(); i_float != BPT_Float.end(); i_float++) {
-		delete i_float->second;
-		BPT_Float.erase(i_float);
-	}
-	for (i_string = BPT_String.begin(); i_string != BPT_String.end(); i_string++) {
-		delete i_string->second;
-		BPT_String.erase(i_string);
-	}
-}
-//创建索引，Type: 1:int, 3:float, 3:char
-void Index_Manager::Create_Index(string File, Type type) {
-	int Rank = 5;//根据block的大小计算阶的大小,暂时有点问题，先设为5
-	if (type == INT) {
-		//Rank = (4096 - 76 - 4) / (sizeof(int) * 2 + 4);
-		BPT<int>* bpt = new BPT<int>(File, Rank);
-		BPT_Int.insert({ File, bpt });
-	}
-	else if (type == FLOAT) {
-		//Rank = (4096 - 76 - 4) / (sizeof(int) + sizeof(float) + 4);
-		BPT<float>* bpt = new BPT<float>(File, Rank);
-		BPT_Float.insert({ File, bpt });
-	}
-	else {
-		//Rank = (4096 - 76 - 4) / (sizeof(int) + sizeof(char) + 4);
-		BPT<string>* bpt = new BPT<string>(File, Rank);
-		BPT_String.insert({ File,bpt });
+		Node<float>* Leaf = i_float->second->MostLeftLeaf;//第一个叶节点
+		string file_name = i_float->first;			  //索引文件名
+		for (int i = 0; Leaf != NULL; i++) {		  //遍历所有叶节点把数据重新写一遍
+			string data;
+			buffer_manager.writeFile("", file_name, 1, i);//先把块写空
+			for (int j = 0; j < Leaf->key_num; j++) {
+				string key = to_string(Leaf->key[j]);		 //key
+				string block_num = to_string(Leaf->value[j]);//table中key对应的block_num
+				data.append(key);
+				data = data + '|';
+				data.append(block_num);
+				data = data + '$';
+			}
+			buffer_manager.writeFile(data, file_name, 1, i);
+			Leaf = Leaf->next_leaf;
+			delete i_float->second;
+			BPT_Float.erase(i_float);
+		}
+		for (i_string = BPT_String.begin(); i_string != BPT_String.end(); i_string++) {
+			Node<string>* Leaf = i_string->second->MostLeftLeaf;//第一个叶节点
+			string file_name = i_string->first;			  //索引文件名
+			for (int i = 0; Leaf != NULL; i++) {		  //遍历所有叶节点把数据重新写一遍
+				string data;
+				buffer_manager.writeFile("", file_name, 1, i);//先把块写空
+				for (int j = 0; j < Leaf->key_num; j++) {
+					string key = Leaf->key[j];		 //key
+					string block_num = to_string(Leaf->value[j]);//table中key对应的block_num
+					data.append(key);
+					data = data + '|';
+					data.append(block_num);
+					data = data + '$';
+				}
+				buffer_manager.writeFile(data, file_name, 1, i);
+				Leaf = Leaf->next_leaf;
+			}
+			delete i_string->second;
+			BPT_String.erase(i_string);
+		}
 	}
 }
 
-//删除索引
+//读取硬盘中的索引文件——√
+void Index_Manager::Read_Index(string File, Type type, int n) {
+	//index文件已经存在则从缓冲区读入内存
+	if (catalog_manager.existIndex(File)) {
+		Index index = catalog_manager.getIndex(File);
+		if (type == INT) {
+			int Rank = BLOCK_SIZE / (10 + sizeof('$') + sizeof('|') + 10);//10:block_num对应的int和key对应的int
+			BPT<int>* bpt = new BPT<int>(File, Rank);
+			for (int i = 0; i < index.blockNum; i++) {
+				string data = buffer_manager.readFile(File, 1, i);
+				for (int j = 0; j < data.length();) {
+					string key;
+					string block_num;
+					while (data[j] != '|') {
+						key = key + data[j++];
+					}
+					j++;
+					while (data[j] != '$') {
+						block_num = block_num + data[j++];
+					}
+					j++;
+					bpt->Insert_Key(atoi(key.c_str()), atoi(block_num.c_str()));
+				}
+			}
+			BPT_Int.insert({ File, bpt });
+		}
+		else if (type == FLOAT) {
+			int Rank = BLOCK_SIZE / (9 + sizeof('$') + sizeof('|') + 10);
+			BPT<float>* bpt = new BPT<float>(File, Rank);
+			BPT_Float.insert({ File, bpt });
+			for (int i = 0; i < index.blockNum; i++) {
+				string data = buffer_manager.readFile(File, 1, i);
+				for (int j = 0; j < data.length();) {
+					string key;
+					string block_num;
+					while (data[j] != '|') {
+						key = key + data[j++];
+					}
+					j++;
+					while (data[j] != '$') {
+						block_num = block_num + data[j++];
+					}
+					j++;
+					bpt->Insert_Key(atof(key.c_str()), atoi(block_num.c_str()));
+				}
+			}
+			BPT_Float.insert({ File, bpt });
+		}
+		else {
+			int Rank = BLOCK_SIZE / (sizeof(char) * n + sizeof('$') + sizeof('|') + 10);
+			BPT<string>* bpt = new BPT<string>(File, Rank);
+			for (int i = 0; i < index.blockNum; i++) {
+				string data = buffer_manager.readFile(File, 1, i);
+				for (int j = 0; j < data.length();) {
+					string key;
+					string block_num;
+					while (data[j] != '|') {
+						key = key + data[j++];
+					}
+					j++;
+					while (data[j] != '$') {
+						block_num = block_num + data[j++];
+					}
+					j++;
+					bpt->Insert_Key(key, atoi(block_num.c_str()));
+				}
+			}
+			BPT_String.insert({ File, bpt });
+		}
+	}
+}
+
+//创建索引文件——√
+void Index_Manager::Create_Index(string File, int column, Type type, int n) {
+	Table table = catalog_manager.getTable(Table_name);
+	Index index;
+	index.indexName = File;
+	index.column = column;
+	index.tableName = Table_name;
+	index.type = type;
+	//创建int类型的索引文件
+	if (type == INT) {
+		int Rank = BLOCK_SIZE / (10 + sizeof('$') + sizeof('|') + 10);//10:block_num对应的int和key对应的int
+		int symbol_num = table.attriNum + 1;//每行数据中'|'字符的数目
+		Table table = catalog_manager.getTable(Table_name);
+		BPT<int>* bpt = new BPT<int>(File, Rank);
+		for (int i = 0; i < table.blockNum; i++) {
+			string data = buffer_manager.readFile(Table_name, 0, i);
+			int count = 0;					//记录每块中的'|'字符的个数
+			for (int j = 0; j < data.length();) {
+				string key;
+				if (data[j] == '|') {
+					count++;
+					j++;
+					if (count % symbol_num == column + 1) {//找到了对应列数据之前的'|'
+						while (data[j] != '|') {
+							key = key + data[j];
+							j++;
+						}
+						bpt->Insert_Key(atoi(key.c_str()), i);
+					}
+				}
+				else {
+					j++;
+				}
+			}
+		}
+		index.blockNum = bpt->Leaf_num;//获得block数
+		BPT_Int.insert({ File, bpt });
+	}
+	//创建float类型的索引文件
+	else if (type == FLOAT) {
+		int Rank = BLOCK_SIZE / (9 + sizeof('$') + sizeof('|') + 10);//9：float占用的最大位数
+		int symbol_num = table.attriNum + 1;//每行数据中'|'字符的数目
+		Table table = catalog_manager.getTable(Table_name);
+		BPT<float>* bpt = new BPT<float>(File, Rank);
+		for (int i = 0; i < table.blockNum; i++) {
+			string data = buffer_manager.readFile(Table_name, 0, i);
+			int count = 0;					//记录每块中的'|'字符的个数
+			for (int j = 0; j < data.length();) {
+				string key;
+				if (data[j] == '|') {
+					count++;
+					j++;
+					if (count % symbol_num == column + 1) {//找到了对应列数据之前的'|'
+						while (data[j] != '|') {
+							key = key + data[j];
+							j++;
+						}
+						bpt->Insert_Key(atof(key.c_str()), i);
+					}
+				}
+				else {
+					j++;
+				}
+			}
+		}
+		index.blockNum = bpt->Leaf_num;//获得block数
+		BPT_Float.insert({ File, bpt });
+	}
+	//创建string类型的索引文件
+	else {
+		int Rank = BLOCK_SIZE / (sizeof(char) * n + sizeof('$') + sizeof('|') + 10);
+		int symbol_num = table.attriNum + 1;//每行数据中'|'字符的数目
+		Table table = catalog_manager.getTable(Table_name);
+		BPT<string>* bpt = new BPT<string>(File, Rank);
+		for (int i = 0; i < table.blockNum; i++) {
+			string data = buffer_manager.readFile(Table_name, 0, i);
+			int count = 0;					//记录每块中的'|'字符的个数
+			for (int j = 0; j < data.length();) {
+				string key;
+				if (data[j] == '|') {
+					count++;
+					j++;
+					if (count % symbol_num == column + 1) {//找到了对应列数据之前的'|'
+						while (data[j] != '|') {
+							key = key + data[j];
+							j++;
+						}
+						bpt->Insert_Key(key, i);
+					}
+				}
+				else {
+					j++;
+				}
+			}
+		}
+		index.blockNum = bpt->Leaf_num;//获得block数
+		BPT_String.insert({ File, bpt });
+	}
+	catalog_manager.createIndex(index);
+}
+
+//删除索引文件——√
 void Index_Manager::Drop_Index(string File, Type type) {
 	if (type == INT) {
+		Index index = catalog_manager.getIndex(File);
+		for (int i = 0; i < index.blockNum; i++) {
+			buffer_manager.clearBlock(File, 1, i);
+		}
+		catalog_manager.dropIndex(File);
 		delete BPT_Int.find(File)->second;
 		BPT_Int.erase(File);
 	}
 	else if (type == FLOAT) {
+		Index index = catalog_manager.getIndex(File);
+		for (int i = 0; i < index.blockNum; i++) {
+			buffer_manager.clearBlock(File, 1, i);
+		}
+		catalog_manager.dropIndex(File);
 		delete BPT_Float.find(File)->second;
 		BPT_Float.erase(File);
 	}
 	else {
+		Index index = catalog_manager.getIndex(File);
+		for (int i = 0; i < index.blockNum; i++) {
+			buffer_manager.clearBlock(File, 1, i);
+		}
+		catalog_manager.dropIndex(File);
 		delete BPT_String.find(File)->second;
 		BPT_String.erase(File);
 	}
 }
-//查询操作
-//等值查询
+
+//查询操作——√
 bool Index_Manager::Search(string File, int k, int& block_num) {
 	if (BPT_Int.find(File)->second->Search_Key(k, block_num)) {
 		return true;
 	}
 	return false;
 }
+
 bool Index_Manager::Search(string File, float k, int& block_num) {
 	if (BPT_Float.find(File)->second->Search_Key(k, block_num)) {
 		return true;
 	}
 	return false;
 }
+
 bool Index_Manager::Search(string File, string k, int& block_num) {
 	if (BPT_String.find(File)->second->Search_Key(k, block_num)) {
 		return true;
 	}
 	return false;
 }
-//区间查询
+
+//区间查询——√
 bool Index_Manager::Search(string File, int min, int max, vector<int>& block_num) {
 	if (BPT_Int.find(File)->second->Search_Key(min, max, block_num)) {
 		return true;
 	}
 	return false;
 }
+
 bool Index_Manager::Search(string File, float min, float max, vector<int>& block_num) {
 	if (BPT_Float.find(File)->second->Search_Key(min, max, block_num)) {
 		return true;
@@ -91,28 +328,52 @@ bool Index_Manager::Search(string File, float min, float max, vector<int>& block
 	return false;
 }
 
-//插入
+//插入——√
 void Index_Manager::Insert(string File, int k, int block_num) {
-	BPT_Int.find(File)->second->Insert_Key(k, block_num);
-}
-void Index_Manager::Insert(string File, float k, int block_num) {
-	BPT_Float.find(File)->second->Insert_Key(k, block_num);
-}
-void Index_Manager::Insert(string File, string k, int block_num) {
-	BPT_String.find(File)->second->Insert_Key(k, block_num);
-}
-//删除
-void Index_Manager::Delete(string File, int k) {
-	BPT_Int.find(File)->second->Delete_Key(k);
-}
-void Index_Manager::Delete(string File, float k) {
-	BPT_Float.find(File)->second->Delete_Key(k);
-}
-void Index_Manager::Delete(string File, string k) {
-	BPT_String.find(File)->second->Delete_Key(k);
+	Index index = catalog_manager.getIndex(File);
+	BPT<int>* bpt = BPT_Int.find(File)->second;
+	bpt->Insert_Key(k, block_num);
+	index.blockNum = bpt->Leaf_num;//更新catalog
 }
 
-void Index_Manager::Debug_Print(string File, Type type){
+void Index_Manager::Insert(string File, float k, int block_num) {
+	Index index = catalog_manager.getIndex(File);
+	BPT<float>* bpt = BPT_Float.find(File)->second;
+	bpt->Insert_Key(k, block_num);
+	index.blockNum = bpt->Leaf_num;//更新catalog
+}
+
+void Index_Manager::Insert(string File, string k, int block_num) {
+	Index index = catalog_manager.getIndex(File);
+	BPT<string>* bpt = BPT_String.find(File)->second;
+	bpt->Insert_Key(k, block_num);
+	index.blockNum = bpt->Leaf_num;//更新catalog
+}
+
+//删除——√
+void Index_Manager::Delete(string File, int k) {
+	Index index = catalog_manager.getIndex(File);
+	BPT<int>* bpt = BPT_Int.find(File)->second;
+	bpt->Delete_Key(k);
+	index.blockNum = bpt->Leaf_num;
+}
+
+void Index_Manager::Delete(string File, float k) {
+	Index index = catalog_manager.getIndex(File);
+	BPT<float>* bpt = BPT_Float.find(File)->second;
+	bpt->Delete_Key(k);
+	index.blockNum = bpt->Leaf_num;
+}
+
+void Index_Manager::Delete(string File, string k) {
+	Index index = catalog_manager.getIndex(File);
+	BPT<string>* bpt = BPT_String.find(File)->second;
+	bpt->Delete_Key(k);
+	index.blockNum = bpt->Leaf_num;
+}
+
+//打印树的节点
+void Index_Manager::Debug_Print(string File, Type type) {
 	if (type == INT) {
 		BPT_Int.find(File)->second->Print();
 	}
