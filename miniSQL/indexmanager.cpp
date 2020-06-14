@@ -35,9 +35,9 @@ Index_Manager::~Index_Manager() {
 				string key = to_string(Leaf->key[j]);		 //key
 				string block_num = to_string(Leaf->value[j]);//table中key对应的block_num
 				data.append(key);
-				data.append("|");
+				data = data + '|';
 				data.append(block_num);
-				data.append("$");
+				data = data + '$';
 			}
 			buffer_manager.writeFile(data, file_name, 1, i);
 			Leaf = Leaf->next_leaf;
@@ -61,29 +61,29 @@ Index_Manager::~Index_Manager() {
 			}
 			buffer_manager.writeFile(data, file_name, 1, i);
 			Leaf = Leaf->next_leaf;
-			delete i_float->second;
-			BPT_Float.erase(i_float);
 		}
-		for (i_string = BPT_String.begin(); i_string != BPT_String.end(); i_string++) {
-			Node<string>* Leaf = i_string->second->MostLeftLeaf;//第一个叶节点
-			string file_name = i_string->first;			  //索引文件名
-			for (int i = 0; Leaf != NULL; i++) {		  //遍历所有叶节点把数据重新写一遍
-				string data;
-				buffer_manager.writeFile("", file_name, 1, i);//先把块写空
-				for (int j = 0; j < Leaf->key_num; j++) {
-					string key = Leaf->key[j];		 //key
-					string block_num = to_string(Leaf->value[j]);//table中key对应的block_num
-					data.append(key);
-					data = data + '|';
-					data.append(block_num);
-					data = data + '$';
-				}
-				buffer_manager.writeFile(data, file_name, 1, i);
-				Leaf = Leaf->next_leaf;
+		delete i_float->second;
+		BPT_Float.erase(i_float);
+	}
+	for (i_string = BPT_String.begin(); i_string != BPT_String.end(); i_string++) {
+		Node<string>* Leaf = i_string->second->MostLeftLeaf;//第一个叶节点
+		string file_name = i_string->first;			  //索引文件名
+		for (int i = 0; Leaf != NULL; i++) {		  //遍历所有叶节点把数据重新写一遍
+			string data;
+			buffer_manager.writeFile("", file_name, 1, i);//先把块写空
+			for (int j = 0; j < Leaf->key_num; j++) {
+				string key = Leaf->key[j];		 //key
+				string block_num = to_string(Leaf->value[j]);//table中key对应的block_num
+				data.append(key);
+				data = data + '|';
+				data.append(block_num);
+				data = data + '$';
 			}
-			delete i_string->second;
-			BPT_String.erase(i_string);
+			buffer_manager.writeFile(data, file_name, 1, i);
+			Leaf = Leaf->next_leaf;
 		}
+		delete i_string->second;
+		BPT_String.erase(i_string);
 	}
 }
 
