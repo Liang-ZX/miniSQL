@@ -50,7 +50,7 @@ int RecordManager::InsertRecord(const std::string &TableName,const Tuple &tuple)
         return 0;
     }
     //check attributes type
-    Table table = catalog_manager.getTable(TableName);
+    Table &table = catalog_manager.getTable(TableName);
     if (CheckAttribute(table,tuple.GetItemList()) == false)
     {
         cout << "Error(Record):The attribute types are incorrect!\n";
@@ -141,7 +141,7 @@ int RecordManager::DeleteRecord(const std::string &TableName)
     }
     cout << "Debug(Record):Start delete all of " << TableName << endl;
     int count = 0;
-    Table table = catalog_manager.getTable(TableName);
+    Table &table = catalog_manager.getTable(TableName);
     for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
         std::string teststr = buffer_manager.readFile(TableName,0,block_num);
@@ -171,7 +171,7 @@ int RecordManager::DeleteRecord(const std::string &TableName,const std::vector<C
         return -1;
     }
     //确认ConditionList中Attribute存在且数据类型无误
-    Table table = catalog_manager.getTable(TableName);
+    Table &table = catalog_manager.getTable(TableName);
     if(CheckAttribute(table,ConditionList) == false) 
     {
         cout << "Debug(Record):Condition type false!\n";
@@ -231,7 +231,7 @@ int RecordManager::SelectRecord(const std::string &TableName,std::string &res)
         return -1;
     }
     // std::string res = "";
-    Table table = catalog_manager.getTable(TableName);
+    Table &table = catalog_manager.getTable(TableName);
     for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
         std::string block_data = buffer_manager.readFile(TableName,0,block_num);
@@ -281,7 +281,7 @@ int RecordManager::SelectRecord(const std::string &TableName,const std::vector<C
         cout << "Debug(Record):No such table!\n";
         return -1;
     }
-    Table table = catalog_manager.getTable(TableName);
+    Table &table = catalog_manager.getTable(TableName);
     // CheckConditionList(table,)
     if(CheckAttribute(table,ConditionList) == false)
     {
