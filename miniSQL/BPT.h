@@ -737,6 +737,7 @@ bool BPT<T>::Search_Key(T min, T max, vector<int>& block_num) {
 			for (unsigned int i = index1; i < node1->key_num; i++) {
 				block_num.push_back(node1->value[i]);
 			}
+			index1 = 0;
 			node1 = node1->next_leaf;
 		}
 		for (unsigned int i = 0; i < index2; i++) {
