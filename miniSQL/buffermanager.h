@@ -79,15 +79,8 @@ public:
 	void clearBlock(const string file_name, int file_type, int block_num); //会写回并释放空间
 	void writeBlockAll(); // call when close DataBase
 	void resetDB_name(const string db_name);
-	/**
-	 * Get the name of database
-	 **/
-	const string GetDB_name();
-	/**
-	 * Check if the table exists 
-	 * 1 exist 0 not
-	 **/
-	bool CheckTableExist(const std::string TableName);
+	const string GetDB_name(); // Get the name of database
+	void deleteFile(const string file_name, int file_type);
 };
 
 #endif

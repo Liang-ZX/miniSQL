@@ -1,8 +1,4 @@
 #include "RecordManager.h"
-#include <iostream>
-#include <cstring>
-#include <ctime>
-
 BufferManager buffer_manager("testrecord");
 CatalogManager catalog_manager;
 using namespace std;

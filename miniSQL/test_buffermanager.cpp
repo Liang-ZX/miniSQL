@@ -1,15 +1,16 @@
-/*
-#include "buffermanager.h"
+/*#include "buffermanager.h"
+#include "RecordManager.h"
 #include <iostream>
 using namespace std;
-*/
 // test1 write in the appropriate block
-/*
+BufferManager buffer_manager("2333");
+CatalogManager catalog_manager;
 int main()
 {
 	BufferManager bmanager("test_db");
 	string w_str= "Hello world!\nThis is a buffer manager test\nZhejiang University\n";
-	bmanager.writeFile(w_str, "test", 0, 1);
+	bmanager.writeFile(w_str, "test", 0, 0);
+	bmanager.deleteFile("test", 0);
 	system("pause");
 	return 0;
 }*/

@@ -428,9 +428,36 @@ const string BufferManager::GetDB_name()
 	return db_name;
 }
 
-bool BufferManager::CheckTableExist(const std::string TableName)
+void BufferManager::deleteFile(const string file_name, int file_type)
 {
-	string teststr = readFile(TableName,2,0);
-	if (teststr.length() == 0) return 0;
-	else return 1;
+	sqlFile* filetmp = filehead->nextfile;
+	while (filetmp != nullptr)
+	{
+		if (filetmp->filename == file_name && filetmp->filetype == file_type)
+		{
+			break;
+		}
+		filetmp = filetmp->nextfile;
+	}
+	if (filetmp == nullptr)
+	{
+		printf("ERROR: No such file exists.\n");
+		return;
+	}
+	
+	sqlBlock* blocktmp = filetmp->blockhead;
+	sqlBlock* blockdelete;
+	while (blocktmp != NULL)
+	{
+		blockdelete = blocktmp;
+		blocktmp = blockdelete->nextblock;
+		BlockPool[blockdelete->blockid] = nullptr;
+		totalblock--;
+		delete[] blockdelete->blockdata;
+		delete blockdelete;
+	}
+	removeFileInfo(filetmp);
+	totalfile--;
+
+	return;
 }
