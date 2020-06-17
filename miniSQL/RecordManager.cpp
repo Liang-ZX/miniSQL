@@ -26,13 +26,13 @@ int RecordManager::DropTableAllFile(const string &TableName)
         return 0;
     }
     cout << "Debug(Record):begin drop "<< TableName << "\n";
-    string db_name = buffer_manager.GetDB_name();
+    // string db_name = buffer_manager.GetDB_name();
     //TODO释放所有相关block不写回
-    buffer_manager.writeBlockAll();
-    string TableFile = "Data_files\\" + db_name + "\\table\\" + TableName + ".txt";
+    // buffer_manager.writeBlockAll();
+    // string TableFile = "Data_files\\" + db_name + "\\table\\" + TableName + ".txt";
     // string IndexFile = "Data_files\\" + db_name + "\\index\\" + TableName + ".txt";
     // string CatalogFile = "Data_files\\" + db_name + "\\catalog\\" + TableName + ".txt";
-    remove(TableFile.c_str());
+    // remove(TableFile.c_str());
     // remove(IndexFile.c_str());
     // remove(CatalogFile.c_str());
     catalog_manager.dropTable(TableName);
@@ -67,10 +67,12 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
         cout << "Debug(Record):Insert not unique\n";
         return 0;
     }
+    //start insert record
     string record;
     record.assign(tuple.TupletoString());
     cout << "Debug(Record):Begin insert record.\n";
     int record_length = record.length();
+    if (table.blockNum == 0) table.blockNum++;
     for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
         string block_data = buffer_manager.readFile(TableName,0,block_num);
@@ -195,7 +197,7 @@ int RecordManager::SelectRecord(const string &TableName,string &res)
     for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
         string block_data = buffer_manager.readFile(TableName,0,block_num);
-        cout << "Debug(Record):In select all:block " << block_num << endl <<  block_data;
+        cout << "Debug(Record):In select all:block " << block_num << endl <<  block_data << endl;
         int data_length = block_data.length();
         for(int pos = 0;pos < data_length;pos++)    if(block_data[pos] == ITEM_SEPARATOR)//find record head |.....$
         {
@@ -203,7 +205,7 @@ int RecordManager::SelectRecord(const string &TableName,string &res)
             count++;
             res = res + block_data.substr(pos,end_address - pos);
             res = res + "\n";
-            pos = end_address + 1;
+            pos = end_address;
         }
     }
     return count;
@@ -211,13 +213,14 @@ int RecordManager::SelectRecord(const string &TableName,string &res)
 
 int RecordManager::SelectRecord(const string &TableName,const vector<Condition> &ConditionList,string &res)
 {
+    //check table exist
     if(catalog_manager.existTable(TableName) == false)
     {
         cout << "Debug(Record):No such table!\n";
         return -1;
     }
     Table &table = catalog_manager.getTable(TableName);
-    // CheckConditionList(table,)
+    // check conditionList is valid
     if(CheckAttribute(table,ConditionList) == false)
     {
         cout << "Debug(Record):Attribute error in SelectRecord\n";
@@ -267,16 +270,16 @@ bool RecordManager::CheckAttribute(const Table &table,const vector<Condition> &C
                 find = 1;
                 if(SameType(table.attributes[j].type,ConditionList[i].item.type) == false)
                 {
-                    cout << "Debug(Record):The condition attribute type is wrong!";
+                    cout << "Debug(Record):The condition attribute type is wrong!\n";
                     return false;
                 }
                 else break;
             }
-            if(!find)
-            {
-                cout << "Debug(Record):The condition attribute dose not exist!";
-                return false;
-            }
+        }
+        if (!find)
+        {
+            cout << "Debug(Record):The condition attribute dose not exist!\n";
+            return false;
         }
     }
     return true;
@@ -285,10 +288,10 @@ bool RecordManager::CheckAttribute(const Table &table,const vector<Condition> &C
 const Tuple RecordManager::RecordtoTuple(const Table &table,const string &Record) const
 {
     int item_begin = 1;
-    int item_end = Record.find(ITEM_SEPARATOR);
     Tuple result;
     for(int i = 0;i < table.attriNum;i++)
     {
+        int item_end = Record.find(ITEM_SEPARATOR, item_begin);
         if(item_end == -1)
         {
             result.ItemList.clear();
@@ -307,6 +310,7 @@ const Tuple RecordManager::RecordtoTuple(const Table &table,const string &Record
             return result;
         }
         result.ItemList.push_back(tp);
+        item_begin = item_end + 1;
     }
     return result;
 }
@@ -386,7 +390,7 @@ int RecordManager::DeleteRecord(const Table &table,string &block_data,const vect
                 // block_data.replace();
                 for(int i = pos;i <= end_address;i++) block_data[i] = EMPTY_CHAR;
             }
-            pos = end_address + 1;
+            pos = end_address;
         }
     }
     return count;
@@ -403,14 +407,13 @@ int RecordManager::BlocktoTuples(const Table &table,string &block_data,vector<Tu
             int end_address = block_data.find(RECORD_SEPARATOR,pos);
             Tuple tp = RecordtoTuple(table,block_data.substr(pos,end_address - pos));
             TupleList.push_back(tp);
-            pos = end_address + 1;
+            pos = end_address;
             count++;
         }
     }
     return count;
 }
-
-int RecordManager::SelectRecord(const Table &table,const string &block_data,const vector<Condition> &ConditionList,string res) const
+int RecordManager::SelectRecord(const Table& table, const string& block_data, const vector<Condition>& ConditionList, string& res) const
 {
     int block_length = block_data.length();
     int count = 0;
@@ -441,7 +444,7 @@ bool RecordManager::InsertRecord(string &block_data, const string &record)
     bool FlagDone = 0;
     for(int pos = 0;pos < BLOCK_SIZE;pos++)
     {
-        if(pos > data_length)   //未使用过的空间
+        if(pos >= data_length)   //未使用过的空间
         {
             if(usable_space == 0) begin_address = pos;
             usable_space += BLOCK_SIZE - data_length;
@@ -462,7 +465,7 @@ bool RecordManager::InsertRecord(string &block_data, const string &record)
             // buffer_manager.writeFile(block_data,TableName,0,block_num);
             return 1;                   //set flag
         }
-        else if(pos > data_length)          //该块空间不足
+        else if(pos >= data_length)          //该块空间不足
         {
             break;
         }
@@ -486,20 +489,38 @@ bool RecordManager::CheckUnique(const Table &table,const Tuple &tuple)
         BlocktoTuples(table,block_data,TupleList);
     }
     int tuple_num = TupleList.size();
+    Index_Manager index_manager(table.name);
     for(int i = 0;i < unique_num;i++)
     {
         // if(table.attributes[unique[i]].)
         //TODO如果有index则调用indexmanager获得是否出现过
-        for(int tuple_id = 0;tuple_id < tuple_num;tuple_id++)
+        Index index = catalog_manager.getIndex(table.name, unique[i]);
+        if (index.column != unique[i])   //without index
         {
-            bool flag = 1;
-            if(table.attributes[unique[i]].type == -1) 
-                flag = CheckConditionData(TupleList[tuple_id].ItemList[unique[i]].f_data,EQUAL,tuple.ItemList[unique[i]].f_data);
-            else if(table.attributes[unique[i]].type == 0) 
-                flag = CheckConditionData(TupleList[tuple_id].ItemList[unique[i]].i_data,EQUAL,tuple.ItemList[unique[i]].i_data);
-            else if(table.attributes[unique[i]].type > 0 && table.attributes[unique[i]].type < 256) 
-                flag = CheckConditionData(TupleList[tuple_id].ItemList[unique[i]].str_data,EQUAL,tuple.ItemList[unique[i]].str_data);
-            if(!flag) return 0;
+            for (int tuple_id = 0; tuple_id < tuple_num; tuple_id++)
+            {
+                bool flag = 1;
+                if (table.attributes[unique[i]].type == -1)
+                    flag = CheckConditionData(TupleList[tuple_id].ItemList[unique[i]].f_data, EQUAL, tuple.ItemList[unique[i]].f_data);
+                else if (table.attributes[unique[i]].type == 0)
+                    flag = CheckConditionData(TupleList[tuple_id].ItemList[unique[i]].i_data, EQUAL, tuple.ItemList[unique[i]].i_data);
+                else if (table.attributes[unique[i]].type > 0 && table.attributes[unique[i]].type < 256)
+                    flag = CheckConditionData(TupleList[tuple_id].ItemList[unique[i]].str_data, EQUAL, tuple.ItemList[unique[i]].str_data);
+                if (!flag) return 0;
+            }
+        }
+        else //with index
+        {
+            int temp;
+            if (index.type == 0)
+                if (index_manager.Search(index.indexName, tuple.ItemList[unique[i]].i_data, temp)) return 0;
+                else;
+            else if (index.type == -1)
+                if (index_manager.Search(index.indexName, tuple.ItemList[unique[i]].f_data, temp)) return 0;
+                else;
+            else if (index.type > 0 && index.type < 256)
+                if (index_manager.Search(index.indexName, tuple.ItemList[unique[i]].str_data, temp)) return 0;
+                else;
         }
     }
     return 1;

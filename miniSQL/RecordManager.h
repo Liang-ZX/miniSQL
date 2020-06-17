@@ -81,7 +81,7 @@ private:
      * Return: The number of the Records selected
      * 
     */
-    int SelectRecord(const Table &table,const string &block_data,const vector<Condition> &ConditionList,string res) const;
+    int SelectRecord(const Table &table,const string &block_data,const vector<Condition> &ConditionList,string &res) const;
     /**
      * auxiliary function
      * Function: insert record(string) into block_data(string)
@@ -126,7 +126,7 @@ public:
      * Return: 
      * TableName: the name of the table
      * record: the data need to be inserted
-     * Exception: 1.Type error;  2.Unique attribute error; 3.Table does not exist
+     * Exception: 1.Type error(*);  2.Unique attribute error; 3.Table does not exist(*)
     */
     int InsertRecord(const string &TableName,const Tuple &tuple);
     /*
@@ -135,7 +135,7 @@ public:
     * buffer_manager: BufferManager
     * TableName: the name of the table
     * return the number of the record deleted
-    * Exception:1.Table dost not exist
+    * Exception:1.Table dost not exist(*)
     * */
     int DeleteRecord(const string &TableName);
     /**
@@ -153,11 +153,11 @@ public:
     * buffer_manager: BufferManager
     * TableName: the name of the table
     * res: the string stored the records selected
-    * Exception:1.Table dost not exist
+    * Exception:1.Table dost not exist(*)
     * */
     int SelectRecord(const string &TableName,string &res);
     /**
-     * Function: Select record fits conditions in a table
+     * Function: Select record fits conditions in a table (*)
      * Return: (int) the number of the records selected
      * buffer_manager: BufferManager
      * TableName: the name of the table
