@@ -1,22 +1,23 @@
 #include "RecordManager.h"
 
-int RecordManager::CreateTableAllFile(const std::string &TableName)
+int RecordManager::CreateTableAllFile(const string &TableName)
 {
     cout << "Debug(Record):begin create " << TableName << "\n";
-    // if(buffer_manager.CheckTableExist(TableName))
-    if(catalog_manager.existTable(TableName))
-    {
-        cout << "Error(Record):Table with same name existed!\n";
-        return 0;
-    }
+    // 调用函数之前确认table是否存在
+    // if(catalog_manager.existTable(TableName))
+    // {
+    //     cout << "Error(Record):Table with same name existed!\n";
+    //     return 0;
+    // }
     buffer_manager.writeFile("",TableName,0,0);
-    buffer_manager.writeFile("",TableName,1,0);
-    buffer_manager.writeFile("exist",TableName,2,0); //创建catalog会有问题
+    // catalog_manager.createTable(TableName);
+    // buffer_manager.writeFile("",TableName,1,0);
+    // buffer_manager.writeFile("exist",TableName,2,0); 
     cout << "Debug(Record):End create " << TableName << "\n";
     return 1;
 }
 
-int RecordManager::DropTableAllFile(const std::string &TableName)
+int RecordManager::DropTableAllFile(const string &TableName)
 {
     // if(buffer_manager.CheckTableExist(TableName) == false)
     if(catalog_manager.existTable(TableName) == false)
@@ -25,23 +26,27 @@ int RecordManager::DropTableAllFile(const std::string &TableName)
         return 0;
     }
     cout << "Debug(Record):begin drop "<< TableName << "\n";
-    std::string db_name = buffer_manager.GetDB_name();
+    string db_name = buffer_manager.GetDB_name();
     //TODO释放所有相关block不写回
     buffer_manager.writeBlockAll();
-    std::string TableFile = "Data_files\\" + db_name + "\\table\\" + TableName + ".txt";
-    std::string IndexFile = "Data_files\\" + db_name + "\\index\\" + TableName + ".txt";
-    std::string CatalogFile = "Data_files\\" + db_name + "\\catalog\\" + TableName + ".txt";
+    string TableFile = "Data_files\\" + db_name + "\\table\\" + TableName + ".txt";
+    // string IndexFile = "Data_files\\" + db_name + "\\index\\" + TableName + ".txt";
+    // string CatalogFile = "Data_files\\" + db_name + "\\catalog\\" + TableName + ".txt";
     remove(TableFile.c_str());
-    remove(IndexFile.c_str());
-    remove(CatalogFile.c_str());
+    // remove(IndexFile.c_str());
+    // remove(CatalogFile.c_str());
+    catalog_manager.dropTable(TableName);
+    // Index_Manager index_manager(TableName);
+    // index_manager.Drop_All() 
+    //TODO 待实现
     cout << "Debug(Record):end drop " << TableName <<"\n";
     return 1;
 }
 
-int RecordManager::InsertRecord(const std::string &TableName,const Tuple &tuple)
+int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
 {
     clock_t begin_time = clock(),end_time = clock();
-    // if (buffer_manager.CheckTableExist(TableName) == false)
+    //check table exist
     if (catalog_manager.existTable(TableName) == false)
     {
         end_time = clock();
@@ -56,82 +61,51 @@ int RecordManager::InsertRecord(const std::string &TableName,const Tuple &tuple)
         cout << "Error(Record):The attribute types are incorrect!\n";
         return 0;
     }
-    //TODO处理unique的冲突
-    std::string record;
+    //check unique attributes
+    if(CheckUnique(table,tuple) == false)
+    {
+        cout << "Debug(Record):Insert not unique\n";
+        return 0;
+    }
+    string record;
     record.assign(tuple.TupletoString());
     cout << "Debug(Record):Begin insert record.\n";
     int record_length = record.length();
     for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
-        std::string block_data = buffer_manager.readFile(TableName,0,block_num);
-        int data_length = block_data.length();
-        int usable_space = 0;
-        int begin_address = -1,end_address = -1;
-        bool FlagDone = 0;
-        for(int pos = 0;pos < BLOCK_SIZE;pos++)
+        string block_data = buffer_manager.readFile(TableName,0,block_num);
+        if(InsertRecord(block_data,record))
         {
-            if(pos > data_length)   //未使用过的空间
+            buffer_manager.writeFile(block_data,TableName,0,block_num);
+            //insert index
+            vector<Index> IndexList;
+            catalog_manager.getIndex(TableName,IndexList);
+            if(IndexList.size() == 0) break;
+            Index_Manager index_manager(TableName);
+            for(int i = 0;i < IndexList.size();i++)
             {
-                if(usable_space == 0) begin_address = pos;
-                usable_space += BLOCK_SIZE - data_length;
+                int column = IndexList[i].column;
+                if(tuple.ItemList[column].type == -1) 
+                    index_manager.Insert(IndexList[i].indexName,tuple.ItemList[column].f_data,block_num);
+                else if(tuple.ItemList[column].type == 0) 
+                    index_manager.Insert(IndexList[i].indexName,tuple.ItemList[column].i_data,block_num);
+                else if(tuple.ItemList[column].type > 0 && tuple.ItemList[column].type < 256) 
+                    index_manager.Insert(IndexList[i].indexName,tuple.ItemList[column].str_data,block_num);
             }
-            else if(block_data[pos] == EMPTY_CHAR)  //删除过的空间
-            {
-                if (usable_space == 0) begin_address = end_address = pos;
-                usable_space++;
-            }
-            else if(block_data[pos] != EMPTY_CHAR)  //占用的空间
-            {
-                usable_space = 0;
-            }
-            if(usable_space >= record_length)   //找到了足够空间
-            {
-                end_address = pos;
-                block_data.replace(begin_address,record_length,record);     //length?last?
-                buffer_manager.writeFile(block_data,TableName,0,block_num);
-                FlagDone = 1;                   //set flag
-                break;
-                // block_data.replace()
-            }
-            else if(pos > data_length)          //该块空间不足
-            {
-                break;
-            }
+            break;
         }
-        if(FlagDone) break;
         if(block_num == table.blockNum - 1) table.blockNum++;       //所有块都没有空间，启用新块
     }
-    /*
-    // {
-    //     std::string block_data = buffer_manager.readFile(TableName,0,block_num,0);
-    //     int begin_address = block_data.find_last_of(RECORD_SEPARATOR);
-    //     if(begin_address == -1) begin_address = 0;
-    //     else begin_address++;
-    //     int usable_space = BLOCK_SIZE - begin_address;
-    //     if(usable_space >= record_length)
-    //     {
-    //         cout << "Debug(Record):Substring of block:" << block_data << endl;
-    //         cout << "Debug(Record):Get Insert block_num" << block_num << " begin_address " << begin_address <<"!\n" << record << endl;
-    //         block_data.replace(begin_address,record_length,record);
-    //         buffer_manager.writeFile(block_data,TableName,0,block_num);
-    //         // buffer_manager.unsetBlockPin(TableName,0,block_num);
-    //         break;
-    //     }
-    //     //如果当前块全部放满，则新增块
-    //     if(block_num == table.blockNum - 1) table.blockNum++;
-    //     // buffer_manager.unsetBlockPin(TableName,0,block_num);
-    // }
-    */
     end_time = clock();
     cout << end_time - begin_time << "ms\n";
     cout << "Debug(Record):End insert record.\n";
     return 1;
 }
 
-int RecordManager::DeleteRecord(const std::string &TableName)
+int RecordManager::DeleteRecord(const string &TableName)
 {
     clock_t begin_time = clock(),end_time = clock();
-    // if(buffer_manager.CheckTableExist(TableName) == false)
+    //check exist
     if(catalog_manager.existTable(TableName) == false)
     {
         end_time = clock();
@@ -144,14 +118,15 @@ int RecordManager::DeleteRecord(const std::string &TableName)
     Table &table = catalog_manager.getTable(TableName);
     for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
-        std::string teststr = buffer_manager.readFile(TableName,0,block_num);
+        string teststr = buffer_manager.readFile(TableName,0,block_num);
         // if(teststr.length() == 0) break;    //若某块为空则结束（不严谨
         int block_length = teststr.length();
         for(int i = 0;i < block_length;i++) 
             if(teststr[i] == RECORD_SEPARATOR) count++;
         buffer_manager.writeFile("",TableName,0,block_num);
     }
-    //TODO solve index
+    Index_Manager index_manager(TableName);
+    // index_manager.Clear_Index(); TODO待实现
     end_time = clock();
     cout << end_time - begin_time << "ms\n";
     cout << "Debug(Record):End delete all of " << TableName << endl;
@@ -159,10 +134,10 @@ int RecordManager::DeleteRecord(const std::string &TableName)
     return count;
 }
 
-int RecordManager::DeleteRecord(const std::string &TableName,const std::vector<Condition> &ConditionList)
+int RecordManager::DeleteRecord(const string &TableName,const vector<Condition> &ConditionList)
 {
     clock_t begin_time = clock(), end_time = clock();
-    // if(buffer_manager.CheckTableExist(TableName) == false)
+    //check table exist
     if(catalog_manager.existTable(TableName) == false)
     {
         end_time = clock();
@@ -177,49 +152,34 @@ int RecordManager::DeleteRecord(const std::string &TableName,const std::vector<C
         cout << "Debug(Record):Condition type false!\n";
         return 0;
     }
-
     cout << "Debug(Record):Start delete record fit conditions in " << TableName << endl;
     int count = 0;
-    //TODO若有index则调用相关函数进行定位BLOCK
-
-    for(int block_num = 0;block_num < table.blockNum;block_num++)
-    {
-        cout << "Debug(Record):In delete conditionally, block:" << block_num << endl;
-        std::string block_data = buffer_manager.readFile(TableName,0,block_num);
-        // if(block_data.length() == 0) break;  //若某块为空则结束（不严谨
-        // int block_length = block_data.length();
-        // int record_begin = 0;
-        // int record_end = block_data.find(RECORD_SEPARATOR,record_begin);
-        //TODO调用indexmanager查找位置
-        count += DeleteRecord(table,block_data,ConditionList);
-        // while(record_end != -1 && record_begin < block_length)
-        // {
-        //     bool is_delete = 0;
-        //     for(int condition_id = 0;condition_id < ConditionList.size();condition_id++)
-        //     {
-        //         int pos = block_data.find(ConditionList[condition_id].item.str_data.c_str(),record_begin);
-        //         cout << condition_id << "  " << pos <<  ConditionList[condition_id].item.str_data <<endl;
-        //         if(pos != -1 && pos < record_end)
-        //         {
-        //             block_data.replace(record_begin,record_end - record_begin + 1,"");
-        //             is_delete = 1;
-        //             count++;
-        //             break;
-        //         }
-        //     }
-        //     if (!is_delete) record_begin = record_end + 1; 
-        //     record_end = block_data.find(RECORD_SEPARATOR,record_begin);
-        //     // else record_
-        // }
-        buffer_manager.writeFile(block_data,TableName,0,block_num);
-    }
+    Index_Manager index_manager(TableName);
+    vector<int> block_id;
+    vector<Index> IndexList;
+    catalog_manager.getIndex(TableName,IndexList);
+    if(GetRecordBlock(table,index_manager,block_id,ConditionList) == -1)
+        for(int block_num = 0;block_num < table.blockNum;block_num++)
+        {
+            cout << "Debug(Record):In delete conditionally, block:" << block_num << endl;
+            string block_data = buffer_manager.readFile(TableName,0,block_num);
+            count += DeleteRecord(table,block_data,ConditionList,index_manager,IndexList);
+            buffer_manager.writeFile(block_data,TableName,0,block_num);
+        }
+    else 
+        for(int i = 0;i < block_id.size();i++)
+        {
+            string block_data = buffer_manager.readFile(TableName,0,block_id[i]);
+            count += DeleteRecord(table,block_data,ConditionList,index_manager,IndexList);
+            buffer_manager.writeFile(block_data,TableName,0,block_id[i]);
+        }
     end_time = clock();
     cout << "Debug(Record):Delete " << count << " records.\n";
     cout << end_time - begin_time << "ms\n";
     return count;
 }
 
-int RecordManager::SelectRecord(const std::string &TableName,std::string &res)
+int RecordManager::SelectRecord(const string &TableName,string &res)
 {
     int count = 0;
     clock_t begin_time = clock(),end_time = clock();
@@ -230,11 +190,11 @@ int RecordManager::SelectRecord(const std::string &TableName,std::string &res)
         cout << "Debug(Record):No such table!\n";
         return -1;
     }
-    // std::string res = "";
+    // string res = "";
     Table &table = catalog_manager.getTable(TableName);
     for(int block_num = 0;block_num < table.blockNum;block_num++)
     {
-        std::string block_data = buffer_manager.readFile(TableName,0,block_num);
+        string block_data = buffer_manager.readFile(TableName,0,block_num);
         cout << "Debug(Record):In select all:block " << block_num << endl <<  block_data;
         int data_length = block_data.length();
         for(int pos = 0;pos < data_length;pos++)    if(block_data[pos] == ITEM_SEPARATOR)//find record head |.....$
@@ -247,34 +207,9 @@ int RecordManager::SelectRecord(const std::string &TableName,std::string &res)
         }
     }
     return count;
-    // {
-    //     std::string block_data = buffer_manager.readFile(TableName,0,block_num);
-    //     cout << "Debug(Record):In select all:block " << block_num << endl <<  block_data;
-    //     int block_length = block_data.length();
-    //     if(block_length == 0)   //不严谨
-    //     {
-    //         end_time = clock();
-    //         cout << end_time - begin_time << "ms\n";
-    //         // res = res + "\0";
-    //         for(int i = 0;i < res.length();i++)
-    //         {
-    //             if(res[i] == RECORD_SEPARATOR) 
-    //             {
-    //                 res[i] = '\n';
-    //                 count++;
-    //             }
-    //         }
-    //         return count;
-    //     }
-    //     else 
-    //     {
-    //         res = res + block_data.substr(0,block_length);
-    //     }
-    // }
-    // return -1;
 }
 
-int RecordManager::SelectRecord(const std::string &TableName,const std::vector<Condition> &ConditionList,std::string &res)
+int RecordManager::SelectRecord(const string &TableName,const vector<Condition> &ConditionList,string &res)
 {
     if(catalog_manager.existTable(TableName) == false)
     {
@@ -290,48 +225,33 @@ int RecordManager::SelectRecord(const std::string &TableName,const std::vector<C
     }
     cout << "Debug(Record):Start select record fit conditions in " << TableName << endl;
     int count = 0;
-    //TODO若有index则调用相关函数进行定位BLOCK
-    for(int block_num = 0;block_num < table.blockNum;block_num++)
-    {
-        std::string block_data = buffer_manager.readFile(TableName,0,block_num);
-        int data_length = block_data.length();
-        count += SelectRecord(table,block_data,ConditionList,res);
-    }
-    // {
-    //     std::string block_data = buffer_manager.readFile(TableName,0,block_num);
-    //     int block_length = block_data.length();
-    //     if (block_length == 0) break;   //不严谨
-    //     int record_begin = 0;
-    //     int record_end = block_data.find(RECORD_SEPARATOR,record_begin);
-    //     while(record_end != -1 && record_begin < block_length)
-    //     {
-    //         for(int condition_id = 0;condition_id < ConditionList.size();condition_id++)
-    //         {
-    //             int pos = block_data.find(ConditionList[condition_id].item.str_data.c_str(),record_begin);
-    //             cout << condition_id << "  " << pos <<  ConditionList[condition_id].item.str_data <<endl;
-    //             if(pos != -1 && pos < record_end)
-    //             {
-    //                 res = res + block_data.substr(record_begin,record_end - record_begin);
-    //                 res = res + '\n';
-    //                 count++;
-    //                 break;
-    //             }
-    //         }
-    //         record_begin = record_end + 1; 
-    //         record_end = block_data.find(RECORD_SEPARATOR,record_begin);
-    //     }
-    // }
+    Index_Manager index_manager(TableName);
+    vector<int> block_id;
+    if(GetRecordBlock(table,index_manager,block_id,ConditionList) == -1)
+        for(int block_num = 0;block_num < table.blockNum;block_num++)
+        {
+            string block_data = buffer_manager.readFile(TableName,0,block_num);
+            // int data_length = block_data.length();
+            count += SelectRecord(table,block_data,ConditionList,res);
+        }
+    else
+        for(int i = 0;i < block_id.size();i++)
+        {
+            string block_data = buffer_manager.readFile(TableName,0,block_id[i]);
+            // int data_length = block_data.length();
+            count += SelectRecord(table,block_data,ConditionList,res);
+        }
     return count;
 }
 
-bool RecordManager::CheckAttribute(const Table &table,const std::vector<Item> &ItemList) const
+bool RecordManager::CheckAttribute(const Table &table,const vector<Item> &ItemList) const
 {
     if (table.attriNum != ItemList.size()) return false;
     for(int i = 0;i < table.attriNum;i++) if(SameType(table.attributes[i].type,ItemList[i].type) == false) return false;
     return true;
 }
 
-bool RecordManager::CheckAttribute(const Table &table,const std::vector<Condition> &ConditionList) const
+bool RecordManager::CheckAttribute(const Table &table,const vector<Condition> &ConditionList) const
 {
     // if (table.attriNum != ItemList.size()) return false;
     int ConditionNum = ConditionList.size();
@@ -362,7 +282,7 @@ bool RecordManager::CheckAttribute(const Table &table,const std::vector<Conditio
     return true;
 }
 
-const Tuple RecordManager::RecordtoTuple(const Table &table,const std::string &Record) const
+const Tuple RecordManager::RecordtoTuple(const Table &table,const string &Record) const
 {
     int item_begin = 1;
     int item_end = Record.find(ITEM_SEPARATOR);
@@ -391,9 +311,9 @@ const Tuple RecordManager::RecordtoTuple(const Table &table,const std::string &R
     return result;
 }
 
-bool RecordManager::CheckConditionList(const Table &table,const std::string &Record,const std::vector<Condition> &ConditionList) const
+bool RecordManager::CheckConditionList(const Table &table,const Tuple &tuple,const vector<Condition> &ConditionList) const
 {
-    Tuple tuple = RecordtoTuple(table,Record);
+    // Tuple tuple = RecordtoTuple(table,Record);
     for(int condition_id = 0;condition_id < ConditionList.size();condition_id++)
     {
         bool flagExist = 0;
@@ -427,6 +347,7 @@ bool RecordManager::CheckConditionData(const T &item_data,Relation relation,cons
     else if(relation == EQUAL) return item_data == condition_data;
     else if(relation == LESS_EQUAL) return item_data <= condition_data;
     else if(relation == LESS) return item_data < condition_data;
+    else if(relation == NOT_EQUAL) return item_data != condition_data;
     else return 0;
 }
 
@@ -436,7 +357,7 @@ bool RecordManager::SameType(short AttrType,short ItemType) const
     else return 0;
 }
 
-int RecordManager::DeleteRecord(const Table &table,std::string &block_data,const std::vector<Condition> &ConditionList) const
+int RecordManager::DeleteRecord(const Table &table,string &block_data,const vector<Condition> &ConditionList,Index_Manager &index_manager,const vector<Index> &IndexList) const
 {
     int block_length = block_data.length();
     int count = 0;
@@ -445,8 +366,22 @@ int RecordManager::DeleteRecord(const Table &table,std::string &block_data,const
         if(block_data[pos] == ITEM_SEPARATOR)       ///head of record |......$
         {
             int end_address = block_data.find(RECORD_SEPARATOR,pos);
-            if(CheckConditionList(table,block_data.substr(pos,end_address - pos),ConditionList))
+            Tuple tuple = RecordtoTuple(table,block_data.substr(pos,end_address - pos));
+            if(CheckConditionList(table,tuple,ConditionList))
             {
+                if(IndexList.size() > 0) //if the table has index
+                {
+                    for(int i = 0;i < IndexList.size();i++)
+                    {
+                        int column = IndexList[i].column;
+                        if (tuple.ItemList[column].type == -1)                                              //float
+                            index_manager.Delete(IndexList[i].indexName,tuple.ItemList[column].f_data);
+                        else if (tuple.ItemList[column].type == 0)                                          //int
+                            index_manager.Delete(IndexList[i].indexName,tuple.ItemList[column].i_data);
+                        else if (tuple.ItemList[column].type > 0 && tuple.ItemList[i].type < 256)           //string
+                            index_manager.Delete(IndexList[i].indexName,tuple.ItemList[column].str_data);
+                    }
+                }
                 count++;
                 // block_data.replace();
                 for(int i = pos;i <= end_address;i++) block_data[i] = EMPTY_CHAR;
@@ -457,21 +392,25 @@ int RecordManager::DeleteRecord(const Table &table,std::string &block_data,const
     return count;
 }
 
-// std::vector<Tuple> &RecordManager::BlocktoTuples(const Table &table,std::string &block_data)const
-// {
-//     int block_length = block_data.length();
-//     for(int pos = 0;pos < block_length;pos++)
-//     {
-//         if(block_data[pos] == ITEM_SEPARATOR) //head of record |......$
-//         {
-//             int end_address = block_data.find(RECORD_SEPARATOR,pos);
-//             // Tuple tp = RecordtoTuple(table,block_data.substr(pos,end_address - pos));
-//             // if(CheckConditionList(table,block_data.substr(pos,end_address - pos),CheckConditionList))
-//         }
-//     }
-// }
+int RecordManager::BlocktoTuples(const Table &table,string &block_data,vector<Tuple> TupleList)const
+{
+    int block_length = block_data.length();
+    int count = 0;
+    for(int pos = 0;pos < block_length;pos++)
+    {
+        if(block_data[pos] == ITEM_SEPARATOR) //head of record |......$
+        {
+            int end_address = block_data.find(RECORD_SEPARATOR,pos);
+            Tuple tp = RecordtoTuple(table,block_data.substr(pos,end_address - pos));
+            TupleList.push_back(tp);
+            pos = end_address + 1;
+            count++;
+        }
+    }
+    return count;
+}
 
-int RecordManager::SelectRecord(const Table &table,const std::string &block_data,const std::vector<Condition> &ConditionList,std::string res) const
+int RecordManager::SelectRecord(const Table &table,const string &block_data,const vector<Condition> &ConditionList,string res) const
 {
     int block_length = block_data.length();
     int count = 0;
@@ -480,7 +419,8 @@ int RecordManager::SelectRecord(const Table &table,const std::string &block_data
         if(block_data[pos] == ITEM_SEPARATOR)       ///head of record |......$
         {
             int end_address = block_data.find(RECORD_SEPARATOR,pos);
-            if(CheckConditionList(table,block_data.substr(pos,end_address - pos),ConditionList))
+            Tuple tuple = RecordtoTuple(table,block_data.substr(pos,end_address - pos));
+            if(CheckConditionList(table,tuple,ConditionList))
             {
                 count++;
                 res = res + block_data.substr(pos,end_address - pos);
@@ -490,4 +430,171 @@ int RecordManager::SelectRecord(const Table &table,const std::string &block_data
         }
     }
     return count;
+}
+
+bool RecordManager::InsertRecord(string &block_data, const string &record)
+{
+    int data_length = block_data.length();
+    int record_length = record.length();
+    int usable_space = 0;
+    int begin_address = -1,end_address = -1;
+    bool FlagDone = 0;
+    for(int pos = 0;pos < BLOCK_SIZE;pos++)
+    {
+        if(pos > data_length)   //未使用过的空间
+        {
+            if(usable_space == 0) begin_address = pos;
+            usable_space += BLOCK_SIZE - data_length;
+        }
+        else if(block_data[pos] == EMPTY_CHAR)  //删除过的空间
+        {
+            if (usable_space == 0) begin_address = end_address = pos;
+            usable_space++;
+        }
+        else if(block_data[pos] != EMPTY_CHAR)  //占用的空间
+        {
+            usable_space = 0;
+        }
+        if(usable_space >= record_length)   //找到了足够空间
+        {
+            end_address = pos;
+            block_data.replace(begin_address,record_length,record);     //length?last?
+            // buffer_manager.writeFile(block_data,TableName,0,block_num);
+            return 1;                   //set flag
+        }
+        else if(pos > data_length)          //该块空间不足
+        {
+            break;
+        }
+    }
+    return 0;
+}
+
+bool RecordManager::CheckUnique(const Table &table,const Tuple &tuple)
+{
+    vector<int> unique;
+    for(int i = 0;i < table.attriNum;i++)
+    {
+        if(table.attributes[i].isUnique) unique.push_back(i);
+    }
+    if(unique.size() == 0) return 1;
+    int unique_num = unique.size();
+    vector<Tuple> TupleList;
+    for(int block_num = 0;block_num < table.blockNum;block_num++)
+    {
+        string block_data = buffer_manager.readFile(table.name,0,block_num);
+        BlocktoTuples(table,block_data,TupleList);
+    }
+    int tuple_num = TupleList.size();
+    for(int i = 0;i < unique_num;i++)
+    {
+        // if(table.attributes[unique[i]].)
+        //TODO如果有index则调用indexmanager获得是否出现过
+        for(int tuple_id = 0;tuple_id < tuple_num;tuple_id++)
+        {
+            bool flag = 1;
+            if(table.attributes[unique[i]].type == -1) 
+                flag = CheckConditionData(TupleList[tuple_id].ItemList[unique[i]].f_data,EQUAL,tuple.ItemList[unique[i]].f_data);
+            else if(table.attributes[unique[i]].type == 0) 
+                flag = CheckConditionData(TupleList[tuple_id].ItemList[unique[i]].i_data,EQUAL,tuple.ItemList[unique[i]].i_data);
+            else if(table.attributes[unique[i]].type > 0 && table.attributes[unique[i]].type < 256) 
+                flag = CheckConditionData(TupleList[tuple_id].ItemList[unique[i]].str_data,EQUAL,tuple.ItemList[unique[i]].str_data);
+            if(!flag) return 0;
+        }
+    }
+    return 1;
+}
+
+int RecordManager::GetRecordBlock(const Table &table,Index_Manager &index_manager,vector<int> &block_id,const vector<Condition> &ConditionList)
+{
+    vector<Index> IndexList;
+    catalog_manager.getIndex(table.name,IndexList);
+    if(IndexList.size() == 0) return -1;
+    // for(int i = 0)
+    for(int i = 0;i < ConditionList.size();i++) if(ConditionList[i].relation == EQUAL)
+    {
+        int column = catalog_manager.getColumn(table,ConditionList[i].AttrName);
+        Index index = catalog_manager.getIndex(table.name,column);
+        //TODO 判断当前是不是index高级
+        if(index.column != column) continue;
+        int block_num = -1;
+        if(ConditionList[i].item.type == -1)
+        {
+            if(index_manager.Search(index.indexName,ConditionList[i].item.f_data,block_num) == false) return 0;
+            else
+            {
+                block_id.push_back(block_num);
+                return 1;
+            }
+        }
+        else if(ConditionList[i].item.type == 0)
+        {
+            if(index_manager.Search(index.indexName,ConditionList[i].item.i_data,block_num) == false) return 0;
+            else 
+            {
+                block_id.push_back(block_num);
+                return 1;
+            }
+        }
+        else if(ConditionList[i].item.type > 0 && ConditionList[i].item.type < 256)
+        {
+            if(index_manager.Search(index.indexName,ConditionList[i].item.str_data,block_num) == false) return 0;
+            else 
+            {
+                block_id.push_back(block_num);
+                return 1;
+            }
+        }
+    }
+    for(int i = 0;i < IndexList.size();i++)
+    {
+        Item minItem,maxItem;
+        if(GetIndexRange(table,IndexList[i],ConditionList,minItem,maxItem))
+        {
+            if(minItem.type == -1) index_manager.Search(IndexList[i].indexName,minItem.f_data,maxItem.f_data,block_id);
+            else if(minItem.type == 0) index_manager.Search(IndexList[i].indexName,minItem.i_data,maxItem.i_data,block_id);
+            return block_id.size();
+            // else if(minItem.type > 0 && maxItem.type < 256) index_manager.Search(IndexList[i].indexName,minItem.str_data,maxItem.str_data,block_id)
+        }
+    }
+    return -1;
+}
+
+// template<typename T>
+bool RecordManager::GetIndexRange(const Table &table,const Index &index,const vector<Condition> &Conditionlist,Item &minItem,Item &maxItem)
+{
+    minItem.f_data = -INFINITY;
+    minItem.i_data = -INFINITY;
+    maxItem.f_data = INFINITY;
+    maxItem.i_data = INFINITY;
+    // minItem.str_data.assign("");
+    // maxItem.str_data.assign("");
+    bool flag = 0;
+    for(int i = 0;i < Conditionlist.size();i++)
+    {
+        int column = catalog_manager.getColumn(table,Conditionlist[i].AttrName);
+        if(column == index.column)
+        {
+            flag = 1;
+            minItem.type = maxItem.type = Conditionlist[i].item.type;
+            if(Conditionlist[i].relation == GREATER || Conditionlist[i].relation == GREATER_EQUAL) 
+            {
+                // if(Conditionlist[i].item.type == 0)
+                minItem.f_data = max(Conditionlist[i].item.f_data,minItem.f_data);
+                minItem.i_data = max(Conditionlist[i].item.i_data,minItem.i_data);
+                // if(Conditionlist[i].item.type > 0)
+                //     if(minItem.str_data.length() == 0 || minItem.str_data < Conditionlist[i].item.str_data)
+                //         minItem.str_data.assign(Conditionlist[i].item.str_data);
+            }
+            else if(Conditionlist[i].relation == LESS_EQUAL || Conditionlist[i].relation == LESS)
+            {
+                maxItem.f_data = min(Conditionlist[i].item.f_data,maxItem.f_data);
+                maxItem.i_data = min(Conditionlist[i].item.i_data,maxItem.i_data);
+                // if(Conditionlist[i].item.type > 0)
+                //     if(maxItem.str_data.length() == 0 || maxItem.str_data > Conditionlist[i].item.str_data)
+                //         maxItem.str_data.assign(Conditionlist[i].item.str_data);
+            }
+        }
+    }
+    return flag;
 }

@@ -6,7 +6,7 @@
 #include <vector>
 using namespace std;
 
-class Attribute {	//the definition of an arrtibute
+class Attribute {	//the definition of an attribute
 public:
 	string name;
 	int type;	//-1 means float, 0 means int, 1~255 means string and its length
@@ -51,9 +51,9 @@ private:
 	int tableNum;	//number of tables
 	int indexNum;   //number of indexes
 
-	//All information about tables will be stored in file table.catlog
+	//All information about tables will be stored in file table.catalog
 	void InitialTable() {	//read table information into memory
-		const string filename = "table.catlog";
+		const string filename = "table.catalog";
 		fstream fin(filename.c_str(), ios::in);
 		fin >> tableNum;
 		for (int i = 0; i < tableNum; i++) {	//get information for each table
@@ -76,9 +76,9 @@ private:
 		fin.close();
 	}
 
-	//All information about indexes will be stored in file index.catlog
+	//All information about indexes will be stored in file index.catalog
 	void InitialIndex() {	//read index information into memory
-		const string filename = "index.catlog";
+		const string filename = "index.catalog";
 		fstream fin(filename.c_str(), ios::in);
 		fin >> indexNum;
 		for (int i = 0; i < indexNum; i++) {	//get information for each index
@@ -94,7 +94,7 @@ private:
 	}
 
 	void StoreTable() {	//store table information into the hard disk
-		const string filename = "table.catlog";
+		const string filename = "table.catalog";
 		fstream fout(filename.c_str(), ios::out);
 		fout << tableNum << endl;
 		for (int i = 0; i < tableNum; i++) {	//for each table
@@ -113,7 +113,7 @@ private:
 	}
 
 	void StoreIndex() {	//store index information into the hard disk
-		const string filename = "index.catlog";
+		const string filename = "index.catalog";
 		fstream fout(filename.c_str(), ios::out);
 		fout << indexNum << endl;
 		for (int i = 0; i < indexNum; i++) {	//for each index
@@ -198,7 +198,7 @@ public:
 		return false;
 	}
 
-	int getColumn(Table& table, string attriName) {	//find out on which column the index is created
+	int getColumn(const Table& table, string attriName) {	//find out on which column the index is created
 		for (int i = 0; i < table.attriNum; i++)
 			if (table.attributes[i].name == attriName)
 				return i;

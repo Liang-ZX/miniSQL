@@ -7,13 +7,14 @@
 #include <ctime>
 #include "Tuple.h"
 #include "buffermanager.h"
-// #include "indexmanager.h"
+#include "indexmanager.h"
 #include "CatalogManager.h"
 
 extern BufferManager buffer_manager;
 // extern Index_Manager index_manager;
 extern CatalogManager catalog_manager;
 
+using namespace std;
 class RecordManager
 {
 private:
@@ -40,14 +41,14 @@ private:
      * Record: the record in string type    |temp|123.12|12|
      * Conditionlist: the Condition list
     */
-    bool CheckConditionList(const Table &table,const std::string &Record,const std::vector<Condition> &ConditionList) const;
+    bool CheckConditionList(const Table &table,const Tuple &tuple,const vector<Condition> &ConditionList) const;
     /**
      * auxiliary function
      * Function: convert a Record into a Tuple
      * Table: table for get the item's type
-     * Record: |xxx|12.3|123|
+     * tuple: record in tuple type
     */
-    const Tuple RecordtoTuple(const Table &table,const std::string &Record) const;
+    const Tuple RecordtoTuple(const Table &table,const string &Record) const;
     /**
      * auxiliary function
      * Function: Check whether the Itemlist can be inserted into table(check type)
@@ -55,7 +56,7 @@ private:
      * Table: the table
      * ItemList: the item list from tuple to be inserted 
     */
-    bool CheckAttribute(const Table &table,const std::vector<Item> &ItemList) const;
+    bool CheckAttribute(const Table &table,const vector<Item> &ItemList) const;
     /**
      * auxiliary function
      * Function: Check whether the ConditionList can be compared with table(check type and exists)
@@ -63,44 +64,71 @@ private:
      * Table: the table
      * ConditionList: the ConditionList
     */
-    bool CheckAttribute(const Table &table,const std::vector<Condition> &ConditionList) const;
+    bool CheckAttribute(const Table &table,const vector<Condition> &ConditionList) const;
     /**
      * auxiliary function
      * Function: Delete records fit ConditionList in block_data(string)
     */
-    int DeleteRecord(const Table &table,std::string &block_data,const std::vector<Condition> &ConditionList) const;
+    int DeleteRecord(const Table &table,string &block_data,const vector<Condition> &ConditionList, Index_Manager &index_manager,const vector<Index> &IndexList) const;
     /**
      * auxiliary function
-     * Function: Convert data(string) in a block to vector<Tuple>
+     * Function: Convert data(string) in a block to vector<Tuple> stored in tuplelist
     */
-    std::vector<Tuple> &BlocktoTuples(const Table &table,std::string &block_data)const;
+    int BlocktoTuples(const Table &table,string &block_data,vector<Tuple> TupleList)const;
     /**
      * auxiliary function
      * Function: Select Record(string) in a  block_data(string) stored in res(string)
      * Return: The number of the Records selected
      * 
     */
-    int SelectRecord(const Table &table,const std::string &block_data,const std::vector<Condition> &ConditionList,std::string res) const;
+    int SelectRecord(const Table &table,const string &block_data,const vector<Condition> &ConditionList,string res) const;
+    /**
+     * auxiliary function
+     * Function: insert record(string) into block_data(string)
+     * return: true means inserting successfully
+     * 
+    */
+    bool InsertRecord(string &block_data, const string &record);
+    /**
+     * auxiliary function
+     * Function: Check whether the tuple has attribute unique error 
+    */
+    bool CheckUnique(const Table &table, const Tuple &tuple);
+
+    /**
+     * Function: Get block_id[] the record in
+     * return -1 means scan all block,return 0,1,2... means the size of block_id
+     * 
+    */
+    int GetRecordBlock(const Table &table,Index_Manager &index_manager,vector<int> &block_id,const vector<Condition> &ConditionList);
+    /**
+     * auxiliary function
+     * Function: Use index and ConditionList to get the data range 
+    */
+    bool GetIndexRange(const Table &table,const Index &index,const vector<Condition> &Conditionlist,Item &minItem,Item &maxItem);
 public:
     RecordManager(/* args */){}
     ~RecordManager(){}
     /*
     * Function: create all files when create a table
     * Return:
+    * Exception: 
     */
-    int CreateTableAllFile(const std::string &TableName);
+    int CreateTableAllFile(const string &TableName);
     /*
      * Function: delete all files when drop a table
      * Return:
+     * Exception:
     */
-    int DropTableAllFile(const std:: string &TableName);
+    int DropTableAllFile(const  string &TableName);
     /*
      * Function: Insert record into a table
      * Return: 
      * TableName: the name of the table
      * record: the data need to be inserted
+     * Exception: 1.Type error;  2.Unique attribute error; 3.Table does not exist
     */
-    int InsertRecord(const std::string &TableName,const Tuple &tuple);
+    int InsertRecord(const string &TableName,const Tuple &tuple);
     /*
     * Function: Delete all record of a table
     * Return: (int)the number of the record deleted
@@ -109,17 +137,16 @@ public:
     * return the number of the record deleted
     * Exception:1.Table dost not exist
     * */
-    int DeleteRecord(const std::string &TableName);
+    int DeleteRecord(const string &TableName);
     /**
      * Function: Delete record fits conditions in a table
      * Return: (int)the number of the records deleted
      * buffer_manager:BufferManager
      * TableName: the name of the table
      * ConditionList: the conditions
-     * Exception:1.Table does not exist;2.Wrong type of data in condition
-     * 暂时所有条目、条件均为字符串进行测试
+     * Exception:1.Table does not exist;2.Wrong type of data in condition; 3.Condition attribute does not exist
     */
-    int DeleteRecord(const std::string &TableName,const std::vector<Condition> &ConditionList);
+    int DeleteRecord(const string &TableName,const vector<Condition> &ConditionList);
     /*
     * Function: Select all records of a table
     * Return: (int) the number of the records selected
@@ -128,7 +155,7 @@ public:
     * res: the string stored the records selected
     * Exception:1.Table dost not exist
     * */
-    int SelectRecord(const std::string &TableName,std::string &res);
+    int SelectRecord(const string &TableName,string &res);
     /**
      * Function: Select record fits conditions in a table
      * Return: (int) the number of the records selected
@@ -136,11 +163,9 @@ public:
      * TableName: the name of the table
      * ConditionList: the conditions
      * res: the string stored the records selected
-     * Exception:1.Table does not exist;2.Wrong type of data in condition
-     * 暂时所有条目、条件均为字符串进行测试
+     * Exception:1.Table does not exist;2.Wrong type of data in condition 3.Condition attribute does not exist
     */
-    int SelectRecord(const std::string &TableName,const std::vector<Condition> &ConditionList,std::string &res);
-
+    int SelectRecord(const string &TableName,const vector<Condition> &ConditionList,string &res);
 };  
 
 #endif

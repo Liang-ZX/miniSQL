@@ -10,7 +10,7 @@ Index_Manager::Index_Manager(string Table_name) : Table_name(Table_name) {
 		if (index[i].type == 0) {
 			Read_Index(index[i].indexName, INT);
 		}
-		else if (index[i].type == 1) {
+		else if (index[i].type == -1) {
 			Read_Index(index[i].indexName, FLOAT);
 		}
 		else {
