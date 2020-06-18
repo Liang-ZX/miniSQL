@@ -441,7 +441,7 @@ void BufferManager::deleteFile(const string file_name, int file_type)
 	}
 	if (filetmp == nullptr)
 	{
-		printf("ERROR: No such file exists.\n");
+		printf("No such file exists.\n");
 		return;
 	}
 	
@@ -456,8 +456,23 @@ void BufferManager::deleteFile(const string file_name, int file_type)
 		delete[] blockdelete->blockdata;
 		delete blockdelete;
 	}
+
+	string fpath;
+	if (filetmp->filetype == 0)
+	{
+		fpath = filetmp->location + this->db_name + "\\table\\" + filetmp->filename + ".txt";
+	}
+	else if (filetmp->filetype == 1)
+	{
+		fpath = filetmp->location + this->db_name + "\\index\\" + filetmp->filename + ".txt";
+	}
+	else
+	{
+		fpath = filetmp->location + this->db_name + "\\catalog\\" + filetmp->filename + ".txt";
+	}
 	removeFileInfo(filetmp);
 	totalfile--;
+	remove(fpath.c_str());
 
 	return;
 }
