@@ -39,7 +39,7 @@ public:
 template<typename T>
 class BPT {
 public:
-	BPT(string File, int Rank);
+	BPT(int Rank);
 	~BPT();
 	void Delete_Tree(Node<T>* node);  //被析构函数调用，删除B+树
 	Node<T>* Search_Node(T k);		  //返回k所在或应当插入到的叶节点，便于插入操作
@@ -50,10 +50,10 @@ public:
 public:
 	bool Insert_Key(T k, int block_num);				  //插入
 	bool Delete_Key(T k);								  //删除
+	void Delete_All();									  //删除树中的所有key
 	bool Search_Key(T k, int& block_num);				  //等值查询
 	bool Search_Key(T min, T max, vector<int>& block_num);//范围查询
 public:
-	string File;	      //文件名
 	int Rank;		      //阶
 	int Node_num;	      //节点数
 	int Leaf_num;		  //叶节点数
@@ -324,8 +324,7 @@ void Node<T>::print() {
 
 /*-----------------------BPT-----------------------*/
 template <typename T>
-BPT<T>::BPT(string File, int Rank) :
-	File(File),
+BPT<T>::BPT(int Rank) :
 	Rank(Rank),
 	Node_num(1),
 	Leaf_num(1)
@@ -460,6 +459,14 @@ bool BPT<T>::Delete_Key(T k) {
 	}
 }
 
+//删除树中的所有Key，变成一棵空树
+template<typename T>
+inline void BPT<T>::Delete_All() {
+	Delete_Tree(Root);
+	MostLeftLeaf = NULL;
+	Root = NULL;
+}
+
 
 template<typename T>
 bool BPT<T>::Delete_Adjust(Node<T>* node) {
@@ -469,10 +476,21 @@ bool BPT<T>::Delete_Adjust(Node<T>* node) {
 			return true;
 		}
 		else {
-			Root = node->pointer[0];
-			delete node;
-			Node_num--;
-			return true;
+			if (node->pointer[0]) {
+				Root = node->pointer[0];
+				Root->father = NULL;
+				delete node;
+				Node_num--;
+				return true;
+			}
+			//变成空树
+			else {
+				Root = NULL;
+				MostLeftLeaf = NULL;
+				delete node;
+				Node_num--;
+				return true;
+			}
 		}
 	}
 	//叶节点
@@ -708,6 +726,7 @@ bool BPT<T>::Search_Key(T k, int& block_num) {
 	}
 	return exist;
 }
+
 //范围查询, min < k < max
 template<typename T>
 bool BPT<T>::Search_Key(T min, T max, vector<int>& block_num) {
