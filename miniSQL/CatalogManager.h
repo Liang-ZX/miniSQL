@@ -18,6 +18,10 @@ public:
 		isPrimaryKey = false;
 		isUnique = false;
 	}
+	Attribute(string s) :name(s){
+		isPrimaryKey = false;
+		isUnique = false;
+	}
 	Attribute(string n, int t, int l, bool iPK, bool iU)
 		:name(n), type(t), length(l), isPrimaryKey(iPK), isUnique(iU) {}	//initialize
 };

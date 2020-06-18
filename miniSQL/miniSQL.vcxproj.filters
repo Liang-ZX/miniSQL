@@ -33,13 +33,13 @@
     <ClCompile Include="RecordManager_test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="test.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Tuple.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="test_IndexManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="test_interpreter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

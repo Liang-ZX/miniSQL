@@ -120,9 +120,9 @@
     <ClCompile Include="interpreter.cpp" />
     <ClCompile Include="RecordManager.cpp" />
     <ClCompile Include="RecordManager_test.cpp" />
-    <ClCompile Include="test.cpp" />
     <ClCompile Include="test_buffermanager.cpp" />
     <ClCompile Include="test_IndexManager.cpp" />
+    <ClCompile Include="test_interpreter.cpp" />
     <ClCompile Include="Tuple.cpp" />
   </ItemGroup>
   <ItemGroup>
