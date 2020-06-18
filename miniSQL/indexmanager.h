@@ -22,6 +22,10 @@ public:
 	void Create_Index(string File, int column, Type type, int n = 0);
 	//删除索引文件
 	void Drop_Index(string File, Type type);
+	//删除全部索引文件
+	void Drop_All();
+	//清空全部索引文件
+	void Clear_Index();
 	//查询操作：
 	//五个重载函数，前三个为等值查询，后两个为范围查询
 	bool Search(string File, int k, int& block_num);
