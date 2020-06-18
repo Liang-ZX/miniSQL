@@ -338,7 +338,7 @@ void Index_Manager::Clear_Index() {
 	map<string, BPT<int>*>::iterator i_int;
 	map<string, BPT<float>*>::iterator i_float;
 	map<string, BPT<string>*>::iterator i_string;
-	for (i_int = BPT_Int.begin(); i_int != BPT_Int.end();) {
+	for (i_int = BPT_Int.begin(); i_int != BPT_Int.end();i_int++) {
 		i_int->second->Delete_All();
 		Index index = catalog_manager.getIndex(i_int->first);
 		for (int i = 0; i < index.blockNum; i++) {
@@ -346,7 +346,7 @@ void Index_Manager::Clear_Index() {
 		}
 		index.blockNum = 0;
 	}
-	for (i_float = BPT_Float.begin(); i_float != BPT_Float.end();) {
+	for (i_float = BPT_Float.begin(); i_float != BPT_Float.end(); i_float++) {
 		i_float->second->Delete_All();
 		Index index = catalog_manager.getIndex(i_float->first);
 		for (int i = 0; i < index.blockNum; i++) {
@@ -354,7 +354,7 @@ void Index_Manager::Clear_Index() {
 		}
 		index.blockNum = 0;
 	}
-	for (i_string = BPT_String.begin(); i_string != BPT_String.end();) {
+	for (i_string = BPT_String.begin(); i_string != BPT_String.end(); i_string++) {
 		i_string->second->Delete_All();
 		Index index = catalog_manager.getIndex(i_string->first);
 		for (int i = 0; i < index.blockNum; i++) {
@@ -366,21 +366,24 @@ void Index_Manager::Clear_Index() {
 
 //查询操作——√
 bool Index_Manager::Search(string File, int k, int& block_num) {
-	if (BPT_Int.find(File)->second->Search_Key(k, block_num)) {
+	BPT<int>* bpt = BPT_Int[File];
+	if (bpt->Search_Key(k, block_num)) {
 		return true;
 	}
 	return false;
 }
 
 bool Index_Manager::Search(string File, float k, int& block_num) {
-	if (BPT_Float.find(File)->second->Search_Key(k, block_num)) {
+	BPT<float>* bpt = BPT_Float[File];
+	if (bpt->Search_Key(k, block_num)) {
 		return true;
 	}
 	return false;
 }
 
 bool Index_Manager::Search(string File, string k, int& block_num) {
-	if (BPT_String.find(File)->second->Search_Key(k, block_num)) {
+	BPT<string>* bpt = BPT_String[File];
+	if (bpt->Search_Key(k, block_num)) {
 		return true;
 	}
 	return false;
@@ -388,14 +391,16 @@ bool Index_Manager::Search(string File, string k, int& block_num) {
 
 //区间查询——√
 bool Index_Manager::Search(string File, int min, int max, vector<int>& block_num) {
-	if (BPT_Int.find(File)->second->Search_Key(min, max, block_num)) {
+	BPT<int>* bpt = BPT_Int[File];
+	if (bpt->Search_Key(min, max, block_num)) {
 		return true;
 	}
 	return false;
 }
 
 bool Index_Manager::Search(string File, float min, float max, vector<int>& block_num) {
-	if (BPT_Float.find(File)->second->Search_Key(min, max, block_num)) {
+	BPT<float>* bpt = BPT_Float[File];
+	if (bpt->Search_Key(min, max, block_num)) {
 		return true;
 	}
 	return false;
