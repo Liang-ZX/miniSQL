@@ -1,4 +1,3 @@
-/*
 #include "RecordManager.h"
 BufferManager buffer_manager("testrecord");
 CatalogManager catalog_manager;
@@ -164,19 +163,14 @@ int main()
     }
     return 0;
 }
-*/
 
-/*datatest:
+
+/*
 alltype
 3
 first -1
 second 0
 third  10
-
-0
-25.3
-4
-touch
 
 4
 alltype
@@ -185,9 +179,5 @@ second
 0
 88
 12
-
-6
-firstindex
-alltype
-0
+//存在索引进行select
 */
