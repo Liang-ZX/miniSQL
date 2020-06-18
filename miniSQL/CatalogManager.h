@@ -13,6 +13,7 @@ public:
 	int length;	//the unit is block
 	bool isPrimaryKey;	//whether it's a primary key
 	bool isUnique;	//whether it's unique
+	bool hasindex;	//whether it has an index on it
 	Attribute() {
 		isPrimaryKey = false;
 		isUnique = false;
@@ -157,7 +158,7 @@ public:
 				tables.erase(tables.begin() + i);
 				tableNum--;
 			}
-		for (int i = 0; i < indexNum; i++)//表被删除了，建在这个表上的所有的index也要跟着删除
+		for (int i = 0; i < indexNum; i++)	//drop indexes on the table
 			if (indexes[i].tableName == tableName) {
 				indexes.erase(indexes.begin() + i);
 				indexNum--;
