@@ -25,7 +25,7 @@ Index_Manager::~Index_Manager() {
 	map<string, BPT<int>*>::iterator i_int;
 	map<string, BPT<float>*>::iterator i_float;
 	map<string, BPT<string>*>::iterator i_string;
-	for (i_int = BPT_Int.begin(); i_int != BPT_Int.end(); i_int++) {
+	for (i_int = BPT_Int.begin(); i_int != BPT_Int.end();) {
 		Node<int>* Leaf = i_int->second->MostLeftLeaf;//第一个叶节点
 		string file_name = i_int->first;			  //索引文件名
 		for (int i = 0; Leaf != NULL; i++) {		  //遍历所有叶节点把数据重新写一遍
@@ -43,9 +43,9 @@ Index_Manager::~Index_Manager() {
 			Leaf = Leaf->next_leaf;
 		}
 		delete i_int->second;
-		BPT_Int.erase(i_int);
+		BPT_Int.erase(i_int++);
 	}
-	for (i_float = BPT_Float.begin(); i_float != BPT_Float.end(); i_float++) {
+	for (i_float = BPT_Float.begin(); i_float != BPT_Float.end();) {
 		Node<float>* Leaf = i_float->second->MostLeftLeaf;//第一个叶节点
 		string file_name = i_float->first;			  //索引文件名
 		for (int i = 0; Leaf != NULL; i++) {		  //遍历所有叶节点把数据重新写一遍
@@ -63,9 +63,9 @@ Index_Manager::~Index_Manager() {
 			Leaf = Leaf->next_leaf;
 		}
 		delete i_float->second;
-		BPT_Float.erase(i_float);
+		BPT_Float.erase(i_float++);
 	}
-	for (i_string = BPT_String.begin(); i_string != BPT_String.end(); i_string++) {
+	for (i_string = BPT_String.begin(); i_string != BPT_String.end();) {
 		Node<string>* Leaf = i_string->second->MostLeftLeaf;//第一个叶节点
 		string file_name = i_string->first;			  //索引文件名
 		for (int i = 0; Leaf != NULL; i++) {		  //遍历所有叶节点把数据重新写一遍
@@ -83,7 +83,7 @@ Index_Manager::~Index_Manager() {
 			Leaf = Leaf->next_leaf;
 		}
 		delete i_string->second;
-		BPT_String.erase(i_string);
+		BPT_String.erase(i_string++);
 	}
 }
 
