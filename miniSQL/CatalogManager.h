@@ -2,9 +2,13 @@
 #define __CatalogManager_H__
 #include <iostream>
 #include <fstream>
+#include <sstream> 
 #include <string>
 #include <vector>
+#include "buffermanager.h"
 using namespace std;
+
+extern BufferManager buffer_manager;
 
 class Attribute {	//the definition of an attribute
 public:
@@ -14,16 +18,18 @@ public:
 	bool isPrimaryKey;	//whether it's a primary key
 	bool isUnique;	//whether it's unique
 	bool hasindex;	//whether it has an index on it
-	Attribute() {
+	Attribute():type(0), length(0) {
 		isPrimaryKey = false;
 		isUnique = false;
+		hasindex = false;
 	}
-	Attribute(string s) :name(s){
+	Attribute(string s) :name(s), type(0), length(0) {
 		isPrimaryKey = false;
 		isUnique = false;
+		hasindex = false;
 	}
-	Attribute(string n, int t, int l, bool iPK, bool iU)
-		:name(n), type(t), length(l), isPrimaryKey(iPK), isUnique(iU) {}	//initialize
+	Attribute(string n, int t, int l, bool iPK, bool iU, bool hi)
+		:name(n), type(t), length(l), isPrimaryKey(iPK), isUnique(iU), hasindex(hi) {}	//initialize
 };
 
 class Table {	//the definition of a table
@@ -53,193 +59,45 @@ class CatalogManager {
 private:
 	vector<Table> tables;	//table lists
 	vector<Index> indexes;	//index lists
-	int tableNum;	//number of tables
-	int indexNum;   //number of indexes
+	int tableNum = 0;	//number of tables
+	int indexNum = 0;   //number of indexes
 
-	//All information about tables will be stored in file table.catalog
-	void InitialTable() {	//read table information into memory
-		const string filename = "table.catalog";
-		fstream fin(filename.c_str(), ios::in);
-		fin >> tableNum;
-		for (int i = 0; i < tableNum; i++) {	//get information for each table
-			Table tempT;
-			fin >> tempT.name;
-			fin >> tempT.blockNum;
-			fin >> tempT.attriNum;
-			for (int j = 0; j < tempT.attriNum; j++) {	//get attributes of the table
-				Attribute tempA;
-				fin >> tempA.name;
-				fin >> tempA.type;
-				fin >> tempA.length;
-				fin >> tempA.isPrimaryKey;
-				fin >> tempA.isUnique;
-				tempT.attributes.push_back(tempA);
-				tempT.totalLength += tempA.length;	//update the total length of one record
-			}
-			tables.push_back(tempT);
-		}
-		fin.close();
-	}
-
-	//All information about indexes will be stored in file index.catalog
-	void InitialIndex() {	//read index information into memory
-		const string filename = "index.catalog";
-		fstream fin(filename.c_str(), ios::in);
-		fin >> indexNum;
-		for (int i = 0; i < indexNum; i++) {	//get information for each index
-			Index tempI;
-			fin >> tempI.indexName;
-			fin >> tempI.tableName;
-			fin >> tempI.column;
-			fin >> tempI.blockNum;
-			fin >> tempI.type;
-			indexes.push_back(tempI);
-		}
-		fin.close();
-	}
-
-	void StoreTable() {	//store table information into the hard disk
-		const string filename = "table.catalog";
-		fstream fout(filename.c_str(), ios::out);
-		fout << tableNum << endl;
-		for (int i = 0; i < tableNum; i++) {	//for each table
-			fout << tables[i].name << " ";
-			fout << tables[i].blockNum << " ";
-			fout << tables[i].attriNum << endl;
-			for (int j = 0; j < tables[i].attriNum; j++) {	//for each attribute
-				fout << tables[i].attributes[j].name << " ";
-				fout << tables[i].attributes[j].type << " ";
-				fout << tables[i].attributes[j].length << " ";
-				fout << tables[i].attributes[j].isPrimaryKey << " ";
-				fout << tables[i].attributes[j].isUnique << endl;
-			}
-		}
-		fout.close();
-	}
-
-	void StoreIndex() {	//store index information into the hard disk
-		const string filename = "index.catalog";
-		fstream fout(filename.c_str(), ios::out);
-		fout << indexNum << endl;
-		for (int i = 0; i < indexNum; i++) {	//for each index
-			fout << indexes[i].indexName << " ";
-			fout << indexes[i].tableName << " ";
-			fout << indexes[i].column << " ";
-			fout << indexes[i].blockNum << " ";
-			fout << indexes[i].type << endl;
-		}
-		fout.close();
-	}
+	//All information about tables will be stored in file table.catalog.txt
+	void InitialTable();
+	//All information about indexes will be stored in file index.catalog.txt
+	void InitialIndex();
+	//store table information into the hard disk
+	void StoreTable();
+	//store index information into the hard disk
+	void StoreIndex();
 
 public:
-	CatalogManager() {	//initialize
+	//initialize
+	CatalogManager() {
 		InitialTable();
 		InitialIndex();
 	}
-
-	~CatalogManager() {	//store
+	//store
+	~CatalogManager() {
 		StoreTable();
 		StoreIndex();
 	}
 
-	void createTable(Table& table) {	//save the table in the catalog
-		tableNum++;
-		tables.push_back(table);
-	}
-
-	void createIndex(Index index) {	//save the index in the catalog
-		indexNum++;
-		indexes.push_back(index);
-	}
-
-	void dropTable(Table table) {	//drop the table from the catalog
-		dropTable(table.name);
-	}
-
-	void dropTable(string tableName) {	//drop the table by name	
-		for (int i = 0; i < tableNum; i++)
-			if (tables[i].name == tableName) {
-				tables.erase(tables.begin() + i);
-				tableNum--;
-			}
-		for (int i = 0; i < indexNum; i++)	//drop indexes on the table
-			if (indexes[i].tableName == tableName) {
-				indexes.erase(indexes.begin() + i);
-				indexNum--;
-			}
-	}
-
-	void dropIndex(Index index) {	//drop the index from the catalog
-		dropIndex(index.indexName);
-	}
-
-	void dropIndex(string indexName) {	//drop the index by name
-		for (int i = 0; i < indexNum; i++)
-			if (indexes[i].indexName == indexName) {
-				indexes.erase(indexes.begin() + i);
-				indexNum--;
-			}
-	}
-
-	bool existTable(string tableName) {	//whether the table already exists, true for yes
-		for (int i = 0; i < tableNum; i++)
-			if (tables[i].name == tableName)
-				return true;
-		return false;
-	}
-
-	bool existIndex(string indexName) {	//whether the index name already exists, true for yes
-		for (int i = 0; i < indexNum; i++)
-			if (indexes[i].indexName == indexName)
-				return true;
-		return false;
-	}
-
-	bool existIndex(string tableName, int column) {	//whether an index already exists for this location, true for yes
-
-		for (int i = 0; i < indexes.size(); i++)
-			if (indexes[i].tableName == tableName && indexes[i].column == column)
-				return true;
-		return false;
-	}
-
-	int getColumn(const Table& table, string attriName) {	//find out on which column the index is created
-		for (int i = 0; i < table.attriNum; i++)
-			if (table.attributes[i].name == attriName)
-				return i;
-		return -1;
-	}
-
-	Table &getTable(string tableName) {	//get the table by name
-		Table temp;
-		for (int i = 0; i < tableNum; i++)
-			if (tables[i].name == tableName)
-				return tables[i];
-		return temp;
-	}
-
-	Index &getIndex(string tableName, int column) {	//get the index by location
-		Index temp;
-		for (int i = 0; i < indexNum; i++)
-			if (indexes[i].tableName == tableName && indexes[i].column == column)
-				return indexes[i];
-		return temp;
-	}
-
-	Index &getIndex(string indexName) {	//get the index by name
-		Index temp;
-		for (int i = 0; i < indexNum; i++)
-			if (indexes[i].indexName == indexName)
-				return indexes[i];
-		return temp;
-	}
-
-	void getIndex(string tableName, vector<Index>& answer) {	//jyh added: get indexes by tablename
-		for (int i = 0; i < indexNum; i++) {
-			if (indexes[i].tableName == tableName) {
-				answer.push_back(indexes[i]);
-			}
-		}
-	}
+	void createTable(Table& table);	//save the table in the catalog
+	void createIndex(Index index);	//save the index in the catalog
+	void dropTable(Table table);	//drop the table from the catalog
+	void dropTable(string tableName);	//drop the table by name
+	void dropIndex(Index index);	//drop the index from the catalog
+	void dropIndex(string indexName);	//drop the index by name
+	bool existTable(string tableName);	//whether the table already exists, true for yes
+	bool existIndex(string indexName);	//whether the index name already exists, true for yes
+	bool existIndex(string tableName, int column);	//whether an index already exists for this location, true for yes
+	int getColumn(const Table& table, string attriName);	//find out on which column the index is created
+	Table& getTable(string tableName);	//get the table by name
+	Index& getIndex(string tableName, int column);	//get the index by location
+	Index& getIndex(string indexName);	//get the index by name
+	void getIndex(string tableName, vector<Index>& answer);	//get indexes by tablename
+	void ShowTableCatalog();	//for test only
+	void ShowIndexCatalog();	//for test only
 };
 #endif
