@@ -17,7 +17,6 @@ class Interpreter
 private:
 	API * api=nullptr; //∂‡Ã¨÷∏’Î
 	CatalogManager * catalog_manager =nullptr;
-	string execFile = "";
 	int readinCondition(vector<Condition> &ConditionList, Table & table, string &s, int &pos);
 public:
 	Interpreter(){}
@@ -25,6 +24,7 @@ public:
 	~Interpreter(){}
 	int interprete (string &s);
 	string getWord(string&s, int &pos);
+	string execFile = "";
 };
 
 #endif

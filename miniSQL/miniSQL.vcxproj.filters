@@ -39,10 +39,10 @@
     <ClCompile Include="test_IndexManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="test_interpreter.cpp">
+    <ClCompile Include="CatalogManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CatalogManager.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
