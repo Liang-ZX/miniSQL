@@ -47,7 +47,7 @@ int main()
     }
     if (catalog_manager.existTable(TestTable.name) == false)
     {
-        rmanager.CreateTableAllFile(TestTable.name);
+        rmanager.CreateTableFile(TestTable.name);
         catalog_manager.createTable(TestTable);
     }
 
@@ -136,7 +136,6 @@ int main()
             string res;
             int count = rmanager.SelectRecord(TableName, ConditionList,res);
             cout << count << endl << res;
-            cout << res;
         }
         else if (x == 5)
         {
@@ -173,18 +172,20 @@ first -1
 second 0
 third  10
 
-0
-25.3
-4
-touch
+
 
 4
 alltype
 2
 second
 0
-88
+55
 12
+
+0
+25.3
+4
+touch
 
 6
 firstindex

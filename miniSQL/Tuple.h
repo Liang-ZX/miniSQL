@@ -9,7 +9,7 @@
 #define RECORD_SEPARATOR '$'
 #define ITEM_SEPARATOR '|'
 #define EMPTY_CHAR '*'
-
+#define MAX_CHAR_LENGTH 255
 typedef enum{
     STRING,
     INT = 0,

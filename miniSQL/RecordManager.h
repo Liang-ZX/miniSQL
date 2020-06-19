@@ -111,17 +111,18 @@ public:
     RecordManager(/* args */){}
     ~RecordManager(){}
     /*
-    * Function: create all files when create a table
+    * Function: create file when create a table
     * Return:
     * Exception: 
     */
-    int CreateTableAllFile(const string &TableName);
+    int CreateTableFile(const string &TableName);
     /*
-     * Function: delete all files when drop a table
+     * Function: delete file when drop a table
      * Return:
      * Exception:
+     * Note: Check table not exist then call this function
     */
-    int DropTableAllFile(const  string &TableName);
+    int DropTableFile(const  string &TableName);
     /*
      * Function: Insert record into a table
      * Return: 
