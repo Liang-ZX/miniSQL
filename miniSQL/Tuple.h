@@ -34,12 +34,12 @@ struct Item{
     std::string str_data;
     int i_data;
     float f_data;
-    short type;
+    int type;
 };
 
 struct Condition{
     std::string AttrName;
-    // short AttrID;
+    // int AttrID;
     Item item;
     Relation relation;
 };

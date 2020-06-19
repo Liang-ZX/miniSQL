@@ -50,6 +50,7 @@ public:
 	int blockNum;		//number of blocks that the data occupies
 	int type;
 	Index() : column(0), blockNum(0), type(0) {}	//initialize
+	Index(string s):indexName(s), column(0), blockNum(0), type(0) {}
 };
 
 //Realized functions:

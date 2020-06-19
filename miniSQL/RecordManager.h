@@ -23,7 +23,7 @@ private:
      * auxiliary function
      * Check whether an ItemType fit the attribute's type
     */
-    bool SameType(short AttrType,short ItemType) const;
+    bool SameType(int AttrType,int ItemType) const;
     /**
      * auxiliary function
      * Function: Check if an item's data is fit a condition

@@ -6,3 +6,5 @@ miniSQL/Debug/*
 miniSQL/Release/*
 miniSQL.sln
 miniSQL/miniSQL.*
+miniSQL/x64/*
+x64/*

@@ -397,7 +397,7 @@ bool RecordManager::CheckConditionData(const T &item_data,Relation relation,cons
     else return 0;
 }
 
-bool RecordManager::SameType(short AttrType,short ItemType) const
+bool RecordManager::SameType(int AttrType,int ItemType) const
 {
     if(AttrType == ItemType || ((ItemType > 0) && (ItemType <= AttrType))) return 1;
     else return 0;

@@ -15,8 +15,10 @@ using namespace std;
 class Interpreter
 {
 private:
-	API * api=NULL; //多态指针
-	CatalogManager * catalog_manager =NULL;
+	API * api=nullptr; //多态指针
+	CatalogManager * catalog_manager =nullptr;
+	string execFile = "";
+	int readinCondition(vector<Condition> &ConditionList, Table & table, string &s, int &pos);
 public:
 	Interpreter(){}
 	Interpreter(API* in_api, CatalogManager* catalog):api(in_api), catalog_manager(catalog){}
@@ -24,8 +26,5 @@ public:
 	int interprete (string &s);
 	string getWord(string&s, int &pos);
 };
-
-
-
 
 #endif
