@@ -2,7 +2,7 @@
 
 void CatalogManager::InitialTable() {	//read table information into memory
 	const string filename = "table.catalog";
-	string str = buffer_manager.readFile(filename, 0, 0);
+	string str = buffer_manager.readFile(filename, 0, 0, false, true);
 	if (!str[0]) return;
 	istringstream strcin(str);
 	string s;
@@ -29,7 +29,7 @@ void CatalogManager::InitialTable() {	//read table information into memory
 
 void CatalogManager::InitialIndex() {	//read index information into memory
 	const string filename = "index.catalog";
-	string str = buffer_manager.readFile(filename, 1, 0);
+	string str = buffer_manager.readFile(filename, 1, 0, false, true);
 	if (!str[0]) return;
 	istringstream strcin(str);
 	string s;

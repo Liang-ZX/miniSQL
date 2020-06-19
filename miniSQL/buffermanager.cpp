@@ -147,7 +147,7 @@ void BufferManager::unsetBlockPin(const string file_name, int file_type, int blo
 	return;
 }
 
-string BufferManager::readFile(const string file_name, int file_type, int block_num, bool setPin)
+string BufferManager::readFile(const string file_name, int file_type, int block_num, bool setPin, bool first_create)
 {
 	const string db_name = this->db_name;
 	sqlBlock* blocktmp=nullptr;
@@ -162,7 +162,7 @@ string BufferManager::readFile(const string file_name, int file_type, int block_
 	// 	} while (blocktmp->block_size == BLOCK_SIZE);
 	// }
 	// else {
-	blocktmp = readFiletoBuffer(db_name, file_name, file_type, block_num, setPin);
+	blocktmp = readFiletoBuffer(db_name, file_name, file_type, block_num, setPin, first_create);
 	if(blocktmp == nullptr)
 	{
 		return "";

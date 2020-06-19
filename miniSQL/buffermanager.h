@@ -74,7 +74,7 @@ public:
 	}
 	void setBlockPin(const string file_name, int file_type, int block_num); //块必须已在缓存区，否则调用readFile即可
 	void unsetBlockPin(const string file_name, int file_type, int block_num);
-	string readFile(const string file_name, int file_type, int block_num, bool setPin=false); //按块则输入块号，否则合并成一个string返回
+	string readFile(const string file_name, int file_type, int block_num, bool setPin=false, bool first_create=false); //按块则输入块号，否则合并成一个string返回
 	void writeFile(const string data, const string file_name, int file_type, int block_num, bool setPin=false); //写空串块仍在内存中
 	void clearBlock(const string file_name, int file_type, int block_num); //会写回并释放空间
 	void writeBlockAll(); // call when close DataBase
