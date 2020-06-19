@@ -224,7 +224,7 @@ int RecordManager::SelectRecord(const string &TableName,string &res)
         return -1;
     }
     Table &table = catalog_manager.getTable(TableName);
-    for(int block_num = 0;block_num < table.blockNum;block_num++)       //sacn linearly to get all records
+    for(int block_num = 0;block_num < table.blockNum;block_num++)       //scan linearly to get all records
     {
         string block_data = buffer_manager.readFile(TableName,0,block_num);
         #ifdef DEBUG_ON

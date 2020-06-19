@@ -11,7 +11,7 @@
 #define EMPTY_CHAR '*'
 #define MAX_CHAR_LENGTH 255
 typedef enum{
-    STRING,
+    STRING = 1,
     INT = 0,
     FLOAT = -1
 }TupleDataType;
