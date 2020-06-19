@@ -15,9 +15,11 @@ using namespace std;
 class Interpreter
 {
 private:
-	API * api; //多态指针
+	API * api=NULL; //多态指针
+	CatalogManager * catalog_manager =NULL;
 public:
 	Interpreter(){}
+	Interpreter(API* in_api, CatalogManager* catalog):api(in_api), catalog_manager(catalog){}
 	~Interpreter(){}
 	int interprete (string &s);
 	string getWord(string&s, int &pos);

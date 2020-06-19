@@ -116,6 +116,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="buffermanager.cpp" />
+    <ClCompile Include="CatalogManager.cpp" />
     <ClCompile Include="indexmanager.cpp" />
     <ClCompile Include="interpreter.cpp" />
     <ClCompile Include="RecordManager.cpp" />
@@ -126,6 +127,7 @@
     <ClCompile Include="Tuple.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="API.h" />
     <ClInclude Include="BPT.h" />
     <ClInclude Include="buffermanager.h" />
     <ClInclude Include="CatalogManager.h" />

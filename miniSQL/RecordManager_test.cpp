@@ -1,3 +1,4 @@
+/*
 #include "RecordManager.h"
 using namespace std;
 BufferManager buffer_manager("testrecord");
@@ -163,7 +164,7 @@ int main()
         else if (x == 7) break;
     }
     return 0;
-}
+}*/
 
 
 /*datatest:
