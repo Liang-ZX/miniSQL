@@ -1,7 +1,7 @@
 #include "RecordManager.h"
+using namespace std;
 BufferManager buffer_manager("testrecord");
 CatalogManager catalog_manager;
-using namespace std;
 void ReadConditionList(vector<Condition>& ConditionList)
 {
     while (1)
@@ -136,6 +136,7 @@ int main()
             string res;
             int count = rmanager.SelectRecord(TableName, ConditionList,res);
             cout << count << endl << res;
+            cout << res;
         }
         else if (x == 5)
         {
@@ -165,12 +166,17 @@ int main()
 }
 
 
-/*
+/*datatest:
 alltype
 3
 first -1
 second 0
 third  10
+
+0
+25.3
+4
+touch
 
 4
 alltype
@@ -179,5 +185,9 @@ second
 0
 88
 12
-//存在索引进行select
+
+6
+firstindex
+alltype
+0
 */

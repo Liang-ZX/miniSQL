@@ -12,8 +12,8 @@
 
 typedef enum{
     STRING,
-    INT,
-    FLOAT
+    INT = 0,
+    FLOAT = -1
 }TupleDataType;
 
 typedef enum{

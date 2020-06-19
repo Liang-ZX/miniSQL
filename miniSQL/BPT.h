@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <set>
 
 using namespace std;
 
@@ -52,7 +53,7 @@ public:
 	bool Delete_Key(T k);								  //删除
 	void Delete_All();									  //删除树中的所有key
 	bool Search_Key(T k, int& block_num);				  //等值查询
-	bool Search_Key(T min, T max, vector<int>& block_num);//范围查询
+	bool Search_Key(T min, T max, set<int>& block_num);//范围查询
 public:
 	int Rank;		      //阶
 	int Node_num;	      //节点数
@@ -729,7 +730,7 @@ bool BPT<T>::Search_Key(T k, int& block_num) {
 
 //范围查询, min < k < max
 template<typename T>
-bool BPT<T>::Search_Key(T min, T max, vector<int>& block_num) {
+bool BPT<T>::Search_Key(T min, T max, set<int>& block_num) {
 	unsigned int index1 = 0;//min
 	unsigned int index2 = 0;//max
 	Node<T>* node1 = Search_Node(min);//min
@@ -746,7 +747,7 @@ bool BPT<T>::Search_Key(T min, T max, vector<int>& block_num) {
 		}
 		else {
 			for (unsigned int i = index1; i < index2; i++) {
-				block_num.push_back(node1->value[i]);
+				block_num.insert(node1->value[i]);
 			}
 		}
 	}
@@ -754,13 +755,13 @@ bool BPT<T>::Search_Key(T min, T max, vector<int>& block_num) {
 	else {
 		while (node1 != node2) {
 			for (unsigned int i = index1; i < node1->key_num; i++) {
-				block_num.push_back(node1->value[i]);
+				block_num.insert(node1->value[i]);
 			}
 			index1 = 0;
 			node1 = node1->next_leaf;
 		}
 		for (unsigned int i = 0; i < index2; i++) {
-			block_num.push_back(node2->value[i]);
+			block_num.insert(node2->value[i]);
 		}
 	}
 	return true;

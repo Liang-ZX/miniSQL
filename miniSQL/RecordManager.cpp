@@ -157,7 +157,7 @@ int RecordManager::DeleteRecord(const string &TableName,const vector<Condition> 
     cout << "Debug(Record):Start delete record fit conditions in " << TableName << endl;
     int count = 0;
     Index_Manager index_manager(TableName);
-    vector<int> block_id;
+    set<int> block_id;
     vector<Index> IndexList;
     catalog_manager.getIndex(TableName,IndexList);
     if(GetRecordBlock(table,index_manager,block_id,ConditionList) == -1)
@@ -169,11 +169,11 @@ int RecordManager::DeleteRecord(const string &TableName,const vector<Condition> 
             buffer_manager.writeFile(block_data,TableName,0,block_num);
         }
     else 
-        for(int i = 0;i < block_id.size();i++)
+        for(set<int>::iterator i = block_id.begin();i !=  block_id.end();i++)
         {
-            string block_data = buffer_manager.readFile(TableName,0,block_id[i]);
+            string block_data = buffer_manager.readFile(TableName,0,*i);
             count += DeleteRecord(table,block_data,ConditionList,index_manager,IndexList);
-            buffer_manager.writeFile(block_data,TableName,0,block_id[i]);
+            buffer_manager.writeFile(block_data,TableName,0,*i);
         }
     end_time = clock();
     cout << "Debug(Record):Delete " << count << " records.\n";
@@ -229,7 +229,7 @@ int RecordManager::SelectRecord(const string &TableName,const vector<Condition> 
     cout << "Debug(Record):Start select record fit conditions in " << TableName << endl;
     int count = 0;
     Index_Manager index_manager(TableName);
-    vector<int> block_id;
+    set<int> block_id;
     if(GetRecordBlock(table,index_manager,block_id,ConditionList) == -1)
         for(int block_num = 0;block_num < table.blockNum;block_num++)
         {
@@ -238,9 +238,9 @@ int RecordManager::SelectRecord(const string &TableName,const vector<Condition> 
             count += SelectRecord(table,block_data,ConditionList,res);
         }
     else
-        for(int i = 0;i < block_id.size();i++)
+        for(set<int>::iterator i = block_id.begin();i != block_id.end();i++)
         {
-            string block_data = buffer_manager.readFile(TableName,0,block_id[i]);
+            string block_data = buffer_manager.readFile(TableName,0,*i);
             // int data_length = block_data.length();
             count += SelectRecord(table,block_data,ConditionList,res);
         }
@@ -526,7 +526,7 @@ bool RecordManager::CheckUnique(const Table &table,const Tuple &tuple)
     return 1;
 }
 
-int RecordManager::GetRecordBlock(const Table &table,Index_Manager &index_manager,vector<int> &block_id,const vector<Condition> &ConditionList)
+int RecordManager::GetRecordBlock(const Table &table,Index_Manager &index_manager,set<int> &block_id,const vector<Condition> &ConditionList)
 {
     vector<Index> IndexList;
     catalog_manager.getIndex(table.name,IndexList);
@@ -544,16 +544,17 @@ int RecordManager::GetRecordBlock(const Table &table,Index_Manager &index_manage
             if(index_manager.Search(index.indexName,ConditionList[i].item.f_data,block_num) == false) return 0;
             else
             {
-                block_id.push_back(block_num);
+                block_id.insert(block_num);
                 return 1;
             }
         }
         else if(ConditionList[i].item.type == 0)
         {
+            //index_manager.Debug_Print(index.indexName, INT);
             if(index_manager.Search(index.indexName,ConditionList[i].item.i_data,block_num) == false) return 0;
             else 
             {
-                block_id.push_back(block_num);
+                block_id.insert(block_num);
                 return 1;
             }
         }
@@ -562,7 +563,7 @@ int RecordManager::GetRecordBlock(const Table &table,Index_Manager &index_manage
             if(index_manager.Search(index.indexName,ConditionList[i].item.str_data,block_num) == false) return 0;
             else 
             {
-                block_id.push_back(block_num);
+                block_id.insert(block_num);
                 return 1;
             }
         }
@@ -584,10 +585,10 @@ int RecordManager::GetRecordBlock(const Table &table,Index_Manager &index_manage
 // template<typename T>
 bool RecordManager::GetIndexRange(const Table &table,const Index &index,const vector<Condition> &Conditionlist,Item &minItem,Item &maxItem)
 {
-    minItem.f_data = -INFINITY;
-    minItem.i_data = -INFINITY;
-    maxItem.f_data = INFINITY;
-    maxItem.i_data = INFINITY;
+    minItem.f_data = -1e8;
+    minItem.i_data = -1e8;
+    maxItem.f_data = 1e8;
+    maxItem.i_data = 1e8;
     // minItem.str_data.assign("");
     // maxItem.str_data.assign("");
     bool flag = 0;

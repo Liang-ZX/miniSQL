@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
+#include <set>
 #include "Tuple.h"
 #include "buffermanager.h"
 #include "indexmanager.h"
@@ -100,7 +101,7 @@ private:
      * return -1 means scan all block,return 0,1,2... means the size of block_id
      * 
     */
-    int GetRecordBlock(const Table &table,Index_Manager &index_manager,vector<int> &block_id,const vector<Condition> &ConditionList);
+    int GetRecordBlock(const Table &table,Index_Manager &index_manager,set<int> &block_id,const vector<Condition> &ConditionList);
     /**
      * auxiliary function
      * Function: Use index and ConditionList to get the data range 

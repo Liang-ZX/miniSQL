@@ -31,8 +31,8 @@ public:
 	bool Search(string File, int k, int& block_num);
 	bool Search(string File, float k, int& block_num);
 	bool Search(string File, string k, int& block_num);
-	bool Search(string File, int min, int max, vector<int>& block_num);
-	bool Search(string File, float min, float max, vector<int>& block_num);
+	bool Search(string File, int min, int max, set<int>& block_num);
+	bool Search(string File, float min, float max, set<int>& block_num);
 	//²åÈë²Ù×÷£º
 	void Insert(string File, int k, int block_num);
 	void Insert(string File, float k, int block_num);

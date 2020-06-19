@@ -390,7 +390,7 @@ bool Index_Manager::Search(string File, string k, int& block_num) {
 }
 
 //Çø¼ä²éÑ¯¡ª¡ª¡Ì
-bool Index_Manager::Search(string File, int min, int max, vector<int>& block_num) {
+bool Index_Manager::Search(string File, int min, int max, set<int>& block_num) {
 	BPT<int>* bpt = BPT_Int[File];
 	if (bpt->Search_Key(min, max, block_num)) {
 		return true;
@@ -398,7 +398,7 @@ bool Index_Manager::Search(string File, int min, int max, vector<int>& block_num
 	return false;
 }
 
-bool Index_Manager::Search(string File, float min, float max, vector<int>& block_num) {
+bool Index_Manager::Search(string File, float min, float max, set<int>& block_num) {
 	BPT<float>* bpt = BPT_Float[File];
 	if (bpt->Search_Key(min, max, block_num)) {
 		return true;
