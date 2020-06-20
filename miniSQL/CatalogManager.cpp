@@ -212,3 +212,13 @@ void CatalogManager::ShowIndexCatalog() {	//for debug only
 	}
 	cout << endl;
 }
+
+void CatalogManager::initial() {	//initialize after the database switch
+	InitialTable();
+	InitialIndex();
+}
+
+void CatalogManager::store() {	//save all before the database switch
+	StoreTable();
+	StoreIndex();
+}
