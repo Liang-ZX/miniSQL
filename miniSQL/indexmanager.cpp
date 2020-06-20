@@ -134,6 +134,7 @@ void Index_Manager::Read_Index(string File, Type type, int n) {//¶ÁÈ¡Ó²ÅÌÖĞµÄË÷Ò
 
 void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 	Table table = catalog_manager.getTable(Table_name);
+	Index index = catalog_manager.getIndex(File);
 	////Î¬»¤hasindex
 	//table.attributes[column].hasindex = true;
 	//Index index;
@@ -160,7 +161,7 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 				else j++;
 			}
 		}
-		//index.blockNum = bpt->Leaf_num;//»ñµÃblockÊı
+		index.blockNum = bpt->Leaf_num;//¸üĞÂblockNum
 		BPT_Int.insert({ File, bpt });
 	}
 	else if (type == FLOAT) {//´´½¨floatÀàĞÍµÄË÷ÒıÎÄ¼ş
@@ -182,7 +183,7 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 				else j++;
 			}
 		}
-		//index.blockNum = bpt->Leaf_num;//»ñµÃblockÊı
+		index.blockNum = bpt->Leaf_num;//¸üĞÂblockNum
 		BPT_Float.insert({ File, bpt });
 	}
 	else {//´´½¨stringÀàĞÍµÄË÷ÒıÎÄ¼ş
@@ -204,7 +205,7 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 				else j++;
 			}
 		}
-		//index.blockNum = bpt->Leaf_num;//»ñµÃblockÊı
+		index.blockNum = bpt->Leaf_num;//¸üĞÂblockNum
 		BPT_String.insert({ File, bpt });
 	}
 	/*catalog_manager.createIndex(index);*/
