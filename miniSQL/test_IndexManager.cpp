@@ -1,29 +1,45 @@
-﻿// Index_Manager.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
-//
-/*
-
-#include "BPT.h"
+﻿#include "BPT.h"
 #include "indexmanager.h"
+#include "buffermanager.h"
 #include <iostream>
+#include <fstream>
 
-int main()
-{
-	Index_Manager IM;
-	IM.Create_Index("index1", INT);
-	cout << "------index manager test-------" << endl;
-	for (int i = 0; i < 20; i++) {
-		IM.Insert("index1", i, i % 40);
+BufferManager buffer_manager("test");
+CatalogManager catalog_manager;
+
+int main() {
+	int temp;
+	BPT<int> bpt1(6);
+	ifstream data("test_BPT_int_100.txt");
+	//数据的插入
+	cout << "--------insert----------" << endl;
+	while (data >> temp) {
+		bpt1.Insert_Key(temp, temp % 40);
 	}
-	IM.Delete("index1", 0);
-	IM.Delete("index1", 1);
-	IM.Delete("index1", 8);
-	IM.Delete("index1", 7);
-	IM.Delete("index1", 19);
-	IM.Delete("index1", 18);
-	IM.Insert("index1", 8,80);
-	IM.Debug_Print("index1", INT);
-	IM.Drop_Index("index1", INT);
+	bpt1.Print();
+	//数据的搜索
+	cout << "--------search----------" << endl;
+	int block_num;
+	set<int> block_num1;
+	bpt1.Search_Key(53, block_num);
+	cout << "block_num = " << block_num << endl;
+	bpt1.Search_Key(20, 30, block_num1);
+	cout << "block_num1: ";
+	for (set<int>::iterator it = block_num1.begin(); it != block_num1.end(); it++) {
+		cout << *it << " ";
+	}
+	cout << endl;
+	//数据的删除
+	cout << "--------delete----------" << endl;
+	for (int i = 1; i <= 50; i++) {
+		bpt1.Delete_Key(i);
+	}
+	bpt1.Print();
+	bpt1.Delete_All();
+	bpt1.Print();
+	//企图删除不存在的key
+	cout << "--------delete fail----------" << endl;
+	bpt1.Delete_Key(20);
+	data.close();
+	system("pause");
 }
-
-*/
-
