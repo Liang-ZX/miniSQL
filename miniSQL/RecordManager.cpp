@@ -58,7 +58,7 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
         #ifdef DEBUG_ON
         end_time = clock();
         cout << end_time - begin_time << "ms\n";
-        cout << "Error(Record):The table does not exit.\n";
+        cout << "ERROR(Record):The table does not exit.\n";
         #endif
         return 0;
     }
@@ -67,7 +67,7 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
     Table &table = catalog_manager.getTable(TableName);
     if (CheckAttribute(table,tuple.GetItemList()) == false)
     {
-        cout << "Error: Incorrect attribute values!\n";
+        cout << "ERROR: Incorrect attribute values!\n";
         return -1;
     }
     //check unique attributes
