@@ -114,6 +114,7 @@ public:
     * Function: create file when create a table
     * Return:
     * Exception: 
+    * Note: Check table not exist then call this function
     */
     int CreateTableFile(const string &TableName);
     /*
