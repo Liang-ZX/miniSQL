@@ -34,7 +34,7 @@ int Interpreter::readinCondition(vector<Condition>& ConditionList, Table & table
 
 		if ((word = getWord(s, pos)).empty())
 			throw SyntaxError();
-		// 类型转换
+		// 脌脿脨脥脳陋禄禄
 		istringstream value(word);
 		bool found_attr = false;
 		for (auto attr : table.attributes) {
@@ -364,7 +364,7 @@ int Interpreter::interprete (string &s)
 				}
 				istringstream value(word);
 				int type = insertTable.attributes[i].type;
-				if (type = -1) {
+				if (type == -1) {
 					float f_data;
 					value >> f_data;
 					insertTuple.AddItem(f_data);
@@ -405,7 +405,7 @@ int Interpreter::interprete (string &s)
 				throw SyntaxError();
 				//cout << "ERROR: command " << word << " not found." << endl;
 			}
-			return 0; //敲入一个回车
+			return 0; //脟脙脠毛脪禄赂枚禄脴鲁碌
 		}
 	}
 	catch (SyntaxError & err)
