@@ -385,6 +385,7 @@ int Interpreter::interprete (string &s)
 				if (word == ",") {
 					word = getWord(s, pos);
 				}
+				i++;
 			}
 			if (word != ")")
 				throw SyntaxError();
