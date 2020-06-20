@@ -51,6 +51,7 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
     #ifdef DEBUG_ON
     clock_t begin_time = clock(),end_time = clock();
     #endif
+    #ifdef DEBUG_ON
     //check table exist
     if (catalog_manager.existTable(TableName) == false)
     {
@@ -61,6 +62,7 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
         #endif
         return 0;
     }
+    #endif
     //check attributes type
     Table &table = catalog_manager.getTable(TableName);
     if (CheckAttribute(table,tuple.GetItemList()) == false)
@@ -121,6 +123,7 @@ int RecordManager::DeleteRecord(const string &TableName)
     #ifdef DEBUG_ON
     clock_t begin_time = clock(),end_time = clock();
     #endif
+    #ifdef DEBUG_ON
     //check exist
     if(catalog_manager.existTable(TableName) == false)
     {
@@ -131,6 +134,7 @@ int RecordManager::DeleteRecord(const string &TableName)
         #endif
         return -1;
     }
+    #endif
     #ifdef DEBUG_ON
     cout << "Debug(Record):Start delete all of " << TableName << endl;
     #endif
@@ -162,6 +166,7 @@ int RecordManager::DeleteRecord(const string &TableName,const vector<Condition> 
     clock_t begin_time = clock(), end_time = clock();
     #endif
     //check table exist
+    #ifdef DEBUG_ON
     if(catalog_manager.existTable(TableName) == false)
     {
         #ifdef DEBUG_ON
@@ -171,6 +176,7 @@ int RecordManager::DeleteRecord(const string &TableName,const vector<Condition> 
         #endif
         return -1;
     }
+    #endif
     //确认ConditionList中Attribute存在且数据类型无误
     Table &table = catalog_manager.getTable(TableName);
     if(CheckAttribute(table,ConditionList) == false) 
@@ -218,6 +224,7 @@ int RecordManager::SelectRecord(const string &TableName,string &res)
     #ifdef DEBUG_ON
     clock_t begin_time = clock(),end_time = clock();
     #endif
+    #ifdef DEBUG_ON
     if(catalog_manager.existTable(TableName) == false)      //table not exist
     {
         #ifdef DEBUG_ON
@@ -227,6 +234,7 @@ int RecordManager::SelectRecord(const string &TableName,string &res)
         #endif
         return -1;
     }
+    #endif
     Table &table = catalog_manager.getTable(TableName);
     for(int block_num = 0;block_num < table.blockNum;block_num++)       //scan linearly to get all records
     {
@@ -250,6 +258,7 @@ int RecordManager::SelectRecord(const string &TableName,string &res)
 int RecordManager::SelectRecord(const string &TableName,const vector<Condition> &ConditionList,string &res)
 {
     //check table exist
+    #ifdef DEBUG_ON
     if(catalog_manager.existTable(TableName) == false)
     {
         #ifdef DEBUG_ON
@@ -257,6 +266,7 @@ int RecordManager::SelectRecord(const string &TableName,const vector<Condition> 
         #endif
         return -1;
     }
+    #endif
     Table &table = catalog_manager.getTable(TableName);
     // check conditionList is valid
     if(CheckAttribute(table,ConditionList) == false)
