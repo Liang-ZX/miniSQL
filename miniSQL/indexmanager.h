@@ -39,7 +39,7 @@ public:
 	void Delete(string File, int k);
 	void Delete(string File, float k);
 	void Delete(string File, string k);
-
+	//debug only
 	void Debug_Print(string File, Type type);
 private:
 	string Table_name;
