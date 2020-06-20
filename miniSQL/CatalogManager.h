@@ -40,6 +40,7 @@ public:
 	int totalLength;	//total length of one record, which is equal to sum(attributes[i].length)
 	vector<Attribute> attributes;	//attributes of the table
 	Table() : blockNum(0), attriNum(0), totalLength(0) {}	//initialize
+	Table(string s): name(s), blockNum(0), attriNum(0), totalLength(0) {}
 };
 
 class Index {	//the definition of an index
@@ -100,5 +101,7 @@ public:
 	void getIndex(string tableName, vector<Index>& answer);	//get indexes by tablename
 	void ShowTableCatalog();	//for test only
 	void ShowIndexCatalog();	//for test only
+	void initial();	//initialize after the database switch
+	void store();	//save all before the database switch
 };
 #endif
