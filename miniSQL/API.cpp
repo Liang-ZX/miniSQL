@@ -15,6 +15,23 @@ void API::createTable(Table& table)
 			}
 	catalog_manager.createTable(table);
 	record_manager.CreateTableFile(table.name);
+
+	Table &tb = catalog_manager.getTable(table.name);
+	Index_Manager index_manager(tb.name);
+	for (int i = 0; i < tb.attriNum; i++)
+		if (tb.attributes[i].isPrimaryKey == true) {
+			Index index(tb.attributes[i].name);
+			index.tableName = tb.name;
+			index.column = i;
+			index.type = tb.attributes[i].type;
+
+			tb.attributes[i].hasindex = true;
+
+			catalog_manager.createIndex(index);
+			index_manager.Create_Index(index.indexName, index.column, checkType(index.type), index.type);
+//			cout << index.indexName << endl;
+		}
+	
 	cout << "Table " << table.name << " has been created successfully!\n";
 	return;
 }
@@ -28,7 +45,7 @@ void API::dropTable(const string& tableName)
 		return;
 	}
 	Index_Manager index(tableName);
-	index.Clear_Index();
+	index.Drop_All();
 	catalog_manager.dropTable(tableName);
 	record_manager.DropTableFile(tableName);
 	cout << "Table " << tableName << " has been dropped successfully!\n";
@@ -42,6 +59,7 @@ void API::insertRecord(const string& tableName, const Tuple& tuple)
 		cout << "ERROR: Table " << tableName << " does not exist!\n";
 		return;
 	}
+
 	if (record_manager.InsertRecord(tableName, tuple) == -1) return;
 	cout << "Record has been inserted successfully!\n";
 }
@@ -100,11 +118,12 @@ void API::deleteRecord(const string& tableName, const vector<Condition>& Conditi
 
 void API::createIndex(Index& index)
 {
+//	cout << "hello" << endl;
 	if (catalog_manager.existIndex(index.indexName) == true) {
 		cout << "ERROR: Index " << index.indexName << " already exists!\n";
 		return;
 	}
-	Table table = catalog_manager.getTable(index.tableName);
+	Table &table = catalog_manager.getTable(index.tableName);
 	if (table.attributes[index.column].isUnique == false && table.attributes[index.column].isPrimaryKey == false) {
 		cout << "ERROR: " << table.name << '(' << table.attributes[index.column].name << ") is not Unique!\n";
 		return;
@@ -114,6 +133,7 @@ void API::createIndex(Index& index)
 		return;
 	}
 	else  table.attributes[index.column].hasindex = true;
+	
 	catalog_manager.createIndex(index);
 	Index_Manager index_manager(index.tableName);
 	index_manager.Create_Index(index.indexName, index.column, checkType(index.type), index.type);
@@ -127,11 +147,13 @@ void API::dropIndex(const string& indexName)
 		return;
 	}
 	Index index = catalog_manager.getIndex(indexName);
-	Table table = catalog_manager.getTable(index.tableName);
-	table.attributes[index.column].hasindex = false;
-	catalog_manager.dropIndex(index);
+	Table &table = catalog_manager.getTable(index.tableName);
+
 	Index_Manager index_manager(table.name);
 	index_manager.Drop_Index(indexName, checkType(index.type));
+
+	table.attributes[index.column].hasindex = false;
+	catalog_manager.dropIndex(index);
 	cout << "Index " << indexName << " has been dropped successfully!\n";
 }
 
@@ -142,8 +164,7 @@ Type API::checkType(int type)
 	else return FLOAT;
 }
 
-void API::show(string &res)
+void API::show(string& res)
 {
 	cout << res << endl;
 }
-
