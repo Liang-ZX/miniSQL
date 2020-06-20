@@ -9,7 +9,7 @@ int RecordManager::CreateTableFile(const string &TableName)
     cout << "Debug(Record):begin create " << TableName << "\n";
     // if(catalog_manager.existTable(TableName))
     // {
-    //     cout << "Error(Record):Table with same name existed!\n";
+    //     cout << "ERROR(Record):Table with same name existed!\n";
     //     return 0;
     // }
     #endif
@@ -28,7 +28,7 @@ int RecordManager::DropTableFile(const string &TableName)
     //check table exist
     if(catalog_manager.existTable(TableName) == false)
     {
-        cout << "Error(Record):The table does not exist!\n";
+        cout << "ERROR(Record):The table does not exist!\n";
         return 0;
     }
     cout << "Debug(Record):begin drop "<< TableName << "\n";
@@ -58,7 +58,7 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
         #ifdef DEBUG_ON
         end_time = clock();
         cout << end_time - begin_time << "ms\n";
-        cout << "Error(Record):The table does not exit.\n";
+        cout << "ERROR(Record):The table does not exit.\n";
         #endif
         return 0;
     }
@@ -67,13 +67,13 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
     Table &table = catalog_manager.getTable(TableName);
     if (CheckAttribute(table,tuple.GetItemList()) == false)
     {
-        cout << "Error: Incorrect attribute values!\n";
+        cout << "ERROR: Incorrect attribute values!\n";
         return -1;
     }
     //check unique attributes
     if(CheckUnique(table,tuple) == false)
     {
-        cout << "Error: Duplicate entry!\n";
+        cout << "ERROR: Duplicate entry!\n";
         return -1;
     }
     //start insert record
@@ -104,7 +104,7 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
                     index_manager.Insert(IndexList[i].indexName,tuple.ItemList[column].i_data,block_num);
                 else if(tuple.ItemList[column].type > 0 && tuple.ItemList[column].type <= MAX_CHAR_LENGTH) 
                     index_manager.Insert(IndexList[i].indexName,tuple.ItemList[column].str_data,block_num);
-                else return -1;     //type error
+                else return -1;     //type ERROR
             }
             break;
         }
@@ -181,7 +181,7 @@ int RecordManager::DeleteRecord(const string &TableName,const vector<Condition> 
     Table &table = catalog_manager.getTable(TableName);
     if(CheckAttribute(table,ConditionList) == false) 
     {
-        cout << "Error: Incorrect attribute values!\n";
+        cout << "ERROR: Incorrect attribute values!\n";
         return -1;  //wrong type
     }
     #ifdef DEBUG_ON
@@ -271,7 +271,7 @@ int RecordManager::SelectRecord(const string &TableName,const vector<Condition> 
     // check conditionList is valid
     if(CheckAttribute(table,ConditionList) == false)
     {
-        cout << "Error: Incorrect attribute values!\n";
+        cout << "ERROR: Incorrect attribute values!\n";
         return -1;
     }
     #ifdef DEBUG_ON
@@ -345,7 +345,7 @@ const Tuple RecordManager::RecordtoTuple(const Table &table,const string &Record
         {
             result.ItemList.clear();
             #ifdef DEBUG_ON
-            cout << "Debug(Record):Error in RecordtoTuple:number of item incorrect\n";
+            cout << "Debug(Record):ERROR in RecordtoTuple:number of item incorrect\n";
             #endif
             return result;
         }
@@ -358,7 +358,7 @@ const Tuple RecordManager::RecordtoTuple(const Table &table,const string &Record
         {
             result.ItemList.clear();
             #ifdef DEBUG_ON
-            cout << "Debug(Record):Error in RecordtoTuple:type of item is out of range\n";
+            cout << "Debug(Record):ERROR in RecordtoTuple:type of item is out of range\n";
             #endif
             return result;
         }
@@ -381,7 +381,7 @@ bool RecordManager::CheckConditionList(const Table &table,const Tuple &tuple,con
         if(flagExist == 0) 
         {
             #ifdef DEBUG_ON
-            cout << "Debug(Record):Error in CheckConditionList:type not exist!\n";
+            cout << "Debug(Record):ERROR in CheckConditionList:type not exist!\n";
             #endif
             return 0;
         }
