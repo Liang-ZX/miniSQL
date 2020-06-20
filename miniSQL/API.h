@@ -7,35 +7,42 @@
 #include "Tuple.h"
 using namespace std;
 
+extern RecordManager record_manager;
+extern CatalogManager catlog_manager;
+
 class API {
 public:
 	API(){}
 	~API(){}
 
-	//interpreter¸ù¾İĞÅÏ¢´´½¨±í²¢´«Èë
+	//interpreteræ ¹æ®ä¿¡æ¯åˆ›å»ºè¡¨å¹¶ä¼ å…¥
 	void createTable(Table& table);
 
-	//´«ÈëÉ¾³ıµÄ±íÃû
+	//ä¼ å…¥åˆ é™¤çš„è¡¨å
 	void dropTable(const string& tableName);
 
-	//interpreter¸ù¾İĞÅÏ¢´´½¨tuple²¢´«Èë
+	//interpreteræ ¹æ®ä¿¡æ¯åˆ›å»ºtupleå¹¶ä¼ å…¥
 	void insertRecord(const string& tableName, const Tuple& tuple);
 
 	void selectRecord(const string& tableName);
 
-	//interpreter¸ù¾İĞÅÏ¢½¨Á¢vector<Condition>²¢´«Èë
+	//interpreteræ ¹æ®ä¿¡æ¯å»ºç«‹vector<Condition>å¹¶ä¼ å…¥
 	void selectRecord(const string& tableName, const vector<Condition>& ConditionList);
 	
 	void deleteRecord(const string& tableName);
 	
-	//interpreter¸ù¾İĞÅÏ¢½¨Á¢vector<Condition>²¢´«Èë
+	//interpreteræ ¹æ®ä¿¡æ¯å»ºç«‹vector<Condition>å¹¶ä¼ å…¥
 	void deleteRecord(const string& tableName, const vector<Condition>& ConditionList);
 	
-	//interpreter¸ù¾İĞÅÏ¢´´½¨Ë÷Òı²¢´«Èë
+	//interpreteræ ¹æ®ä¿¡æ¯åˆ›å»ºç´¢å¼•å¹¶ä¼ å…¥
 	void createIndex(Index& index);
 	
-	void dropIndex(const string& indexName); 
+	void dropIndex(const string& indexName);
 
+private:
+	Type checkType(int type);
+
+	void show(string &res);
 };
 
 #endif
