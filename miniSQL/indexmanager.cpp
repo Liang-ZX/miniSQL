@@ -6,15 +6,12 @@ Index_Manager::Index_Manager(string Table_name) : Table_name(Table_name) {
 	vector<Index> index; //´æ´¢±íÉÏËùÓĞµÄË÷ÒıĞÅÏ¢
 	catalog_manager.getIndex(Table_name, index);
 	for (int i = 0; i < index.size(); i++) {//°ÑËùÓĞÒÑ¾­´´½¨µÄindexÎÄ¼şĞ´ÈëÄÚ´æ
-		if (index[i].type == 0) {
+		if (index[i].type == 0) 
 			Read_Index(index[i].indexName, INT);
-		}
-		else if (index[i].type == -1) {
+		else if (index[i].type == -1) 
 			Read_Index(index[i].indexName, FLOAT);
-		}
-		else {
+		else 
 			Read_Index(index[i].indexName, STRING);
-		}
 	}
 }
 
@@ -95,10 +92,8 @@ void Index_Manager::Read_Index(string File, Type type, int n) {//¶ÁÈ¡Ó²ÅÌÖĞµÄË÷Ò
 			for (int j = 0; j < data.length();) {
 				string key;
 				string block_num;
-				while (data[j] != '|') { key = key + data[j++]; }
-				j++;
-				while (data[j] != '$') { block_num = block_num + data[j++]; }
-				j++;
+				while (data[j] != '|') { key = key + data[j++]; } j++;
+				while (data[j] != '$') { block_num = block_num + data[j++]; } j++;
 				bpt->Insert_Key(atoi(key.c_str()), atoi(block_num.c_str()));
 			}
 		}
@@ -113,10 +108,8 @@ void Index_Manager::Read_Index(string File, Type type, int n) {//¶ÁÈ¡Ó²ÅÌÖĞµÄË÷Ò
 			for (int j = 0; j < data.length();) {
 				string key;
 				string block_num;
-				while (data[j] != '|') { key = key + data[j++]; }
-				j++;
-				while (data[j] != '$') { block_num = block_num + data[j++]; }
-				j++;
+				while (data[j] != '|') { key = key + data[j++]; } j++;
+				while (data[j] != '$') { block_num = block_num + data[j++]; } j++;
 				bpt->Insert_Key(atof(key.c_str()), atoi(block_num.c_str()));
 			}
 		}
@@ -130,10 +123,8 @@ void Index_Manager::Read_Index(string File, Type type, int n) {//¶ÁÈ¡Ó²ÅÌÖĞµÄË÷Ò
 			for (int j = 0; j < data.length();) {
 				string key;
 				string block_num;
-				while (data[j] != '|') { key = key + data[j++]; }
-				j++;
-				while (data[j] != '$') { block_num = block_num + data[j++]; }
-				j++;
+				while (data[j] != '|') { key = key + data[j++]; } j++;
+				while (data[j] != '$') { block_num = block_num + data[j++]; } j++;
 				bpt->Insert_Key(key, atoi(block_num.c_str()));
 			}
 		}
@@ -156,8 +147,7 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 		BPT<int>* bpt = new BPT<int>(Rank);
 		for (int i = 0; i < table.blockNum; i++) {
 			string data = buffer_manager.readFile(Table_name, 0, i);
-			int count = 0;//¼ÇÂ¼Ã¿¿éÖĞµÄ'|'×Ö·ûµÄ¸öÊı
-			for (int j = 0; j < data.length();) {
+			for (int j = 0, count = 0; j < data.length();) {
 				string key;
 				if (data[j] == '|') {
 					count++;
@@ -171,7 +161,7 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 			}
 		}
 		//index.blockNum = bpt->Leaf_num;//»ñµÃblockÊı
-		//BPT_Int.insert({ File, bpt });
+		BPT_Int.insert({ File, bpt });
 	}
 	else if (type == FLOAT) {//´´½¨floatÀàĞÍµÄË÷ÒıÎÄ¼ş
 		int Rank = BLOCK_SIZE / (9 + sizeof('$') + sizeof('|') + 10);//9£ºfloatÕ¼ÓÃµÄ×î´óÎ»Êı
@@ -179,8 +169,7 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 		BPT<float>* bpt = new BPT<float>(Rank);
 		for (int i = 0; i < table.blockNum; i++) {
 			string data = buffer_manager.readFile(Table_name, 0, i);
-			int count = 0;//¼ÇÂ¼Ã¿¿éÖĞµÄ'|'×Ö·ûµÄ¸öÊı
-			for (int j = 0; j < data.length();) {
+			for (int j = 0, count = 0; j < data.length();) {
 				string key;
 				if (data[j] == '|') {
 					count++;
@@ -194,7 +183,7 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 			}
 		}
 		//index.blockNum = bpt->Leaf_num;//»ñµÃblockÊı
-		//BPT_Float.insert({ File, bpt });
+		BPT_Float.insert({ File, bpt });
 	}
 	else {//´´½¨stringÀàĞÍµÄË÷ÒıÎÄ¼ş
 		int Rank = BLOCK_SIZE / (sizeof(char) * n + sizeof('$') + sizeof('|') + 10);
@@ -202,8 +191,7 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 		BPT<string>* bpt = new BPT<string>(Rank);
 		for (int i = 0; i < table.blockNum; i++) {
 			string data = buffer_manager.readFile(Table_name, 0, i);
-			int count = 0;//¼ÇÂ¼Ã¿¿éÖĞµÄ'|'×Ö·ûµÄ¸öÊı
-			for (int j = 0; j < data.length();) {
+			for (int j = 0, count = 0; j < data.length();) {
 				string key;
 				if (data[j] == '|') {
 					count++;
@@ -217,7 +205,7 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 			}
 		}
 		//index.blockNum = bpt->Leaf_num;//»ñµÃblockÊı
-		//BPT_String.insert({ File, bpt });
+		BPT_String.insert({ File, bpt });
 	}
 	/*catalog_manager.createIndex(index);*/
 }
