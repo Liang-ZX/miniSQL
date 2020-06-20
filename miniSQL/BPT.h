@@ -361,7 +361,31 @@ Node<T>* BPT<T>::Search_Node(T k)
 {
 	Node<T>* node = Root;
 	while (!node->isleaf) {
-		for (unsigned int i = 0; i <= node->key_num; i++) {
+		if (k < node->key[0]) {
+			node = node->pointer[0];
+		}
+		else if (k > node->key[node->key_num - 1]) {
+			node = node->pointer[node->key_num];
+		}
+		else {
+			unsigned int index;
+			unsigned int left = 0;
+			unsigned int right = node->key_num - 1;
+			unsigned int mid;
+			while (left < right) {
+				mid = (left + right) / 2;
+				if (node->key[mid] >= k) {right = mid;}
+				else {left = mid + 1;}
+			}
+			index = right;
+			if (node->key[index] == k) {
+				node = node->pointer[index + 1];
+			}
+			else {
+				node = node->pointer[index];
+			}
+		}
+		/*for (unsigned int i = 0; i <= node->key_num; i++) {
 			if (i < node->key_num && k == node->key[i]) {
 				node = node->pointer[i + 1];
 				break;
@@ -370,7 +394,7 @@ Node<T>* BPT<T>::Search_Node(T k)
 				node = node->pointer[i];
 				break;
 			}
-		}
+		}*/
 	}
 	return node;
 }
