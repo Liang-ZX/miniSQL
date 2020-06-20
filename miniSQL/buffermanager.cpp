@@ -430,21 +430,7 @@ const string BufferManager::GetDB_name()
 
 void BufferManager::deleteFile(const string file_name, int file_type)
 {
-	sqlFile* filetmp = filehead->nextfile;
-	while (filetmp != nullptr)
-	{
-		if (filetmp->filename == file_name && filetmp->filetype == file_type)
-		{
-			break;
-		}
-		filetmp = filetmp->nextfile;
-	}
-	if (filetmp == nullptr)
-	{
-		printf("No such file exists.\n");
-		return;
-	}
-	
+	sqlFile* filetmp = getFileInfo(file_name, file_type);	
 	sqlBlock* blocktmp = filetmp->blockhead;
 	sqlBlock* blockdelete;
 	while (blocktmp != NULL)
@@ -472,7 +458,13 @@ void BufferManager::deleteFile(const string file_name, int file_type)
 	}
 	removeFileInfo(filetmp);
 	totalfile--;
-	remove(fpath.c_str());
+	int ret = remove(fpath.c_str());
+
+	if (ret == -1)
+	{
+		cout << "File '" << file_name << "' doesn't exist." << endl;
+		return;
+	}
 
 	return;
 }

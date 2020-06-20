@@ -231,7 +231,7 @@ int Interpreter::interprete (string &s)
 				newIndex.column = colnum;
 				if ((word = getWord(s, pos)) != ")")
 					throw SyntaxError();
-				// api->createIndex(newIndex);
+				api->createIndex(newIndex);
 				return 1;
 			}else{
 				throw SyntaxError();
@@ -325,7 +325,7 @@ int Interpreter::interprete (string &s)
 			delete_table = catalog_manager->getTable(tableName);
 			if ((word = getWord(s, pos)).empty())
 			{
-				// api->deleteRecord(tableName);
+				api->deleteRecord(tableName);
 				return 0;
 			}
 			else if (word == "where")
@@ -333,7 +333,7 @@ int Interpreter::interprete (string &s)
 				vector<Condition> ConditionList;
 				int ret = readinCondition(ConditionList, delete_table, s, pos);
 				if (ret == 0) return 1;
-				// api->deleteRecord(tableName, ConditionList);
+				api->deleteRecord(tableName, ConditionList);
 				return 0;
 			}
 		}
@@ -388,7 +388,7 @@ int Interpreter::interprete (string &s)
 			}
 			if (word != ")")
 				throw SyntaxError();
-			// api->insertRecord(tableName, insertTuple);
+			api->insertRecord(tableName, insertTuple);
 			return 0;
 		}
 		else if (word == "quit") {

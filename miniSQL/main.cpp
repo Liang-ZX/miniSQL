@@ -43,7 +43,8 @@ int main()
 				readFile = true;
 			}
 			else {
-				cout << "query OK" << endl;
+				if( status == 0)
+					cout << "query OK" << endl;
 			}
 		}
 	}

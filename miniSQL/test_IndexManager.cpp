@@ -1,4 +1,5 @@
-﻿#include "BPT.h"
+﻿/*
+#include "BPT.h"
 #include "indexmanager.h"
 #include "buffermanager.h"
 #include "RecordManager.h"
@@ -45,7 +46,7 @@ int main() {
 	bpt1.Delete_Key(20);
 	data.close();
 	system("pause");
-}
+}*/
 
 //int main() {
 //	int temp;
