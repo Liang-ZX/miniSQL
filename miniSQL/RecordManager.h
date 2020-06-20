@@ -126,7 +126,7 @@ public:
     int DropTableFile(const  string &TableName);
     /*
      * Function: Insert record into a table
-     * Return: 
+     * Return: -1 for error, 1 for right
      * TableName: the name of the table
      * record: the data need to be inserted
      * Exception: 1.Type error(*);  2.Unique attribute error; 3.Table does not exist(*)

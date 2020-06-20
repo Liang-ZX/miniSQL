@@ -65,18 +65,14 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
     Table &table = catalog_manager.getTable(TableName);
     if (CheckAttribute(table,tuple.GetItemList()) == false)
     {
-        #ifdef DEBUG_ON
-        cout << "Error(Record):The attribute types are incorrect!\n";
-        #endif
-        return 0;
+        cout << "Error: Incorrect attribute values!\n";
+        return -1;
     }
     //check unique attributes
     if(CheckUnique(table,tuple) == false)
     {
-        #ifdef DEBUG_ON
-        cout << "Debug(Record):Insert not unique\n";
-        #endif
-        return 0;
+        cout << "Error: Duplicate entry!\n";
+        return -1;
     }
     //start insert record
     string record;
@@ -179,9 +175,7 @@ int RecordManager::DeleteRecord(const string &TableName,const vector<Condition> 
     Table &table = catalog_manager.getTable(TableName);
     if(CheckAttribute(table,ConditionList) == false) 
     {
-        #ifdef DEBUG_ON
-        cout << "Debug(Record):Condition type false!\n";
-        #endif
+        cout << "Error: Incorrect attribute values!\n";
         return -1;  //wrong type
     }
     #ifdef DEBUG_ON
@@ -267,9 +261,7 @@ int RecordManager::SelectRecord(const string &TableName,const vector<Condition> 
     // check conditionList is valid
     if(CheckAttribute(table,ConditionList) == false)
     {
-        #ifdef DEBUG_ON
-        cout << "Debug(Record):Attribute error in SelectRecord\n";
-        #endif
+        cout << "Error: Incorrect attribute values!\n";
         return -1;
     }
     #ifdef DEBUG_ON
