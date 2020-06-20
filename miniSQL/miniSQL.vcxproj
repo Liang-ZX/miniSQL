@@ -115,6 +115,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="API.cpp" />
     <ClCompile Include="buffermanager.cpp" />
     <ClCompile Include="CatalogManager.cpp" />
     <ClCompile Include="indexmanager.cpp" />

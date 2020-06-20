@@ -1,7 +1,8 @@
 #include "API.h"
 
 //interpreter根据信息创建表并传入
-void API::createTable(Table& table) {
+void API::createTable(Table& table)
+{
 	if (catalog_manager.existTable(table.name) == true) {
 		cout << "ERROR: Table " << table.name << " already exists!\n";
 		return;
@@ -15,10 +16,13 @@ void API::createTable(Table& table) {
 	catalog_manager.createTable(table);
 	record_manager.CreateTableFile(table.name);
 	cout << "Table " << table.name << " has been created successfully!\n";
+	return;
 }
 
 //传入删除的表名
-void API::dropTable(const string& tableName) {
+
+void API::dropTable(const string& tableName)
+{
 	if (catalog_manager.existTable(tableName) == false) {
 		cout << "ERROR: Table " << tableName << " does not exist!\n";
 		return;
@@ -31,7 +35,9 @@ void API::dropTable(const string& tableName) {
 }
 
 //interpreter根据信息创建tuple并传入
-void API::insertRecord(const string& tableName, const Tuple& tuple) {
+
+void API::insertRecord(const string& tableName, const Tuple& tuple)
+{
 	if (catalog_manager.existTable(tableName) == false) {
 		cout << "ERROR: Table " << tableName << " does not exist!\n";
 		return;
@@ -40,7 +46,8 @@ void API::insertRecord(const string& tableName, const Tuple& tuple) {
 	cout << "Record has been inserted successfully!\n";
 }
 
-void API::selectRecord(const string& tableName) {
+void API::selectRecord(const string& tableName)
+{
 	if (catalog_manager.existTable(tableName) == false) {
 		cout << "ERROR: Table " << tableName << " does not exist!\n";
 		return;
@@ -51,7 +58,9 @@ void API::selectRecord(const string& tableName) {
 }
 
 //interpreter根据信息建立vector<Condition>并传入
-void API::selectRecord(const string& tableName, const vector<Condition>& ConditionList) {
+
+void API::selectRecord(const string& tableName, const vector<Condition>& ConditionList)
+{
 	if (catalog_manager.existTable(tableName) == false) {
 		cout << "ERROR: Table " << tableName << " does not exist!\n";
 		return;
@@ -61,7 +70,8 @@ void API::selectRecord(const string& tableName, const vector<Condition>& Conditi
 	show(res);
 }
 
-void API::deleteRecord(const string& tableName) {
+void API::deleteRecord(const string& tableName)
+{
 	if (catalog_manager.existTable(tableName) == false) {
 		cout << "ERROR: Table " << tableName << " does not exist!\n";
 		return;
@@ -72,7 +82,9 @@ void API::deleteRecord(const string& tableName) {
 }
 
 //interpreter根据信息建立vector<Condition>并传入
-void API::deleteRecord(const string& tableName, const vector<Condition>& ConditionList) {
+
+void API::deleteRecord(const string& tableName, const vector<Condition>& ConditionList)
+{
 	if (catalog_manager.existTable(tableName) == false)
 	{
 		cout << "ERROR: Table " << tableName << " does not exist!\n";
@@ -85,7 +97,9 @@ void API::deleteRecord(const string& tableName, const vector<Condition>& Conditi
 }
 
 //interpreter根据信息创建索引并传入
-void API::createIndex(Index& index) {
+
+void API::createIndex(Index& index)
+{
 	if (catalog_manager.existIndex(index.indexName) == true) {
 		cout << "ERROR: Index " << index.indexName << " already exists!\n";
 		return;
@@ -106,7 +120,8 @@ void API::createIndex(Index& index) {
 	cout << "Index " << index.indexName << " has been created successfully!\n";
 }
 
-void API::dropIndex(const string& indexName) {
+void API::dropIndex(const string& indexName)
+{
 	if (catalog_manager.existIndex(indexName) == false) {
 		cout << "ERROR: Index " << indexName << " does not exist!\n";
 		return;
@@ -120,13 +135,15 @@ void API::dropIndex(const string& indexName) {
 	cout << "Index " << indexName << " has been dropped successfully!\n";
 }
 
-Type API::checkType(int type) {
+Type API::checkType(int type)
+{
 	if (type == 0) return INT;
 	else if (type > 0) return STRING;
 	else return FLOAT;
 }
 
-void API::show(string &res) {
+void API::show(string &res)
+{
 	cout << res << endl;
 }
 

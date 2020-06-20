@@ -4,9 +4,11 @@
 
 BufferManager buffer_manager("testrecord");
 CatalogManager catalog_manager;
+RecordManager record_manager;
 int main()
 {
-	Interpreter interpreter(nullptr, &catalog_manager);
+	API api;
+	Interpreter interpreter(&api, &catalog_manager);
 	cout << "***********************MiniSQL***************************" << endl;
 	bool readFile = false;
 	ifstream file;

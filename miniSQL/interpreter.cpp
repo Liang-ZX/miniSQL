@@ -172,7 +172,7 @@ int Interpreter::interprete (string &s)
 							word = getWord(s, pos);
 							primaryKey = word;
 							bool flag = false;
-							for (int i = 0; i < newtable.attributes.size() - 1; i++) {
+							for (int i = 0; i < newtable.attributes.size(); i++) {
 								if (newtable.attributes[i].name == primaryKey) {
 									flag = true;
 									newtable.attributes[i].isPrimaryKey = true;
@@ -195,7 +195,7 @@ int Interpreter::interprete (string &s)
 				}
 				newtable.attriNum = static_cast<int>(newtable.attributes.size());
 				newtable.totalLength = totalLength;
-				//api->createTable(newtable);
+				api->createTable(newtable);
 				return 0; //success
 			}
 			else if (word == "index")
@@ -231,7 +231,7 @@ int Interpreter::interprete (string &s)
 				newIndex.column = colnum;
 				if ((word = getWord(s, pos)) != ")")
 					throw SyntaxError();
-				// //api->createIndex(newIndex);
+				// api->createIndex(newIndex);
 				return 1;
 			}else{
 				throw SyntaxError();
@@ -264,7 +264,7 @@ int Interpreter::interprete (string &s)
 
 			word = getWord(s, pos);
 			if (word.empty()) {		//without condition
-				//api->selectRecord(tableName);
+				api->selectRecord(tableName);
 				return 0;
 			}
 			else if (word != "where")
@@ -273,7 +273,7 @@ int Interpreter::interprete (string &s)
 				vector<Condition> ConditionList;
 				int ret = readinCondition(ConditionList, select_table, s, pos);
 				if (ret == 0) return 1;
-				//api->selectRecord(tableName, ConditionList);
+				api->selectRecord(tableName, ConditionList);
 				return 0;
 			}
 		}
@@ -284,7 +284,7 @@ int Interpreter::interprete (string &s)
 			{
 				if (!(word = getWord(s, pos)).empty())
 				{
-					//api->dropTable(word);
+					api->dropTable(word);
 					return 0;
 				}
 				else
@@ -294,7 +294,7 @@ int Interpreter::interprete (string &s)
 			{
 				if (!(word = getWord(s, pos)).empty())
 				{
-					//api->dropIndex(word);
+					api->dropIndex(word);
 					return 0;
 				}
 				else 
@@ -325,7 +325,7 @@ int Interpreter::interprete (string &s)
 			delete_table = catalog_manager->getTable(tableName);
 			if ((word = getWord(s, pos)).empty())
 			{
-				// //api->deleteRecord(tableName);
+				// api->deleteRecord(tableName);
 				return 0;
 			}
 			else if (word == "where")
@@ -333,7 +333,7 @@ int Interpreter::interprete (string &s)
 				vector<Condition> ConditionList;
 				int ret = readinCondition(ConditionList, delete_table, s, pos);
 				if (ret == 0) return 1;
-				// //api->deleteRecord(tableName, ConditionList);
+				// api->deleteRecord(tableName, ConditionList);
 				return 0;
 			}
 		}
@@ -388,7 +388,7 @@ int Interpreter::interprete (string &s)
 			}
 			if (word != ")")
 				throw SyntaxError();
-			// //api->insertRecord(tableName, insertTuple);
+			// api->insertRecord(tableName, insertTuple);
 			return 0;
 		}
 		else if (word == "quit") {
