@@ -1,23 +1,30 @@
-#include "RecordManager.h"
 // #define DEBUG_ON
+#include "RecordManager.h"
+
+
 int RecordManager::CreateTableFile(const string &TableName)
 {
     // 调用函数之前确认table是否存在!
+    #ifdef DEBUG_ON
     cout << "Debug(Record):begin create " << TableName << "\n";
     // if(catalog_manager.existTable(TableName))
     // {
     //     cout << "Error(Record):Table with same name existed!\n";
     //     return 0;
     // }
+    #endif
 
     //create table file
     buffer_manager.writeFile("",TableName,0,0);
+    #ifdef DEBUG_ON
     cout << "Debug(Record):End create " << TableName << "\n";
+    #endif
     return 1;
 }
 
 int RecordManager::DropTableFile(const string &TableName)
 {
+    #ifdef DEBUG_ON
     //check table exist
     if(catalog_manager.existTable(TableName) == false)
     {
@@ -25,14 +32,17 @@ int RecordManager::DropTableFile(const string &TableName)
         return 0;
     }
     cout << "Debug(Record):begin drop "<< TableName << "\n";
+    #endif
     //逻辑上删除文件
     buffer_manager.deleteFile(TableName,0);
+    #ifdef DEBUG_ON
     //删除catalog文件中的信息
     catalog_manager.dropTable(TableName);
     //drop index
     Index_Manager index_manager(TableName);
     index_manager.Drop_All();
     cout << "Debug(Record):end drop " << TableName <<"\n";
+    #endif
     return 1;
 }
 
