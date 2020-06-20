@@ -27,10 +27,10 @@ Index_Manager::~Index_Manager() {
 	map<string, BPT<string>*>::iterator i_string;
 	for (i_int = BPT_Int.begin(); i_int != BPT_Int.end();) {
 		Node<int>* Leaf = i_int->second->MostLeftLeaf;//第一个叶节点
-		string file_name = i_int->first;			  //索引文件名
+		string File = i_int->first;			  //索引文件名
 		for (int i = 0; Leaf != NULL; i++) {		  //遍历所有叶节点把数据重新写一遍
 			string data;
-			buffer_manager.writeFile("", file_name, 1, i);   //先把块i写空
+			buffer_manager.writeFile("", File, 1, i);   //先把块i写空
 			for (int j = 0; j < Leaf->key_num; j++) {
 				string key = to_string(Leaf->key[j]);		 //key
 				string block_num = to_string(Leaf->value[j]);//table中key对应的block_num
@@ -39,7 +39,7 @@ Index_Manager::~Index_Manager() {
 				data.append(block_num);
 				data = data + '$';
 			}
-			buffer_manager.writeFile(data, file_name, 1, i);
+			buffer_manager.writeFile(data, File, 1, i);
 			Leaf = Leaf->next_leaf;
 		}
 		delete i_int->second;
@@ -47,10 +47,10 @@ Index_Manager::~Index_Manager() {
 	}
 	for (i_float = BPT_Float.begin(); i_float != BPT_Float.end();) {
 		Node<float>* Leaf = i_float->second->MostLeftLeaf;//第一个叶节点
-		string file_name = i_float->first;			  //索引文件名
+		string File = i_float->first;			  //索引文件名
 		for (int i = 0; Leaf != NULL; i++) {		  //遍历所有叶节点把数据重新写一遍
 			string data;
-			buffer_manager.writeFile("", file_name, 1, i);//先把块写空
+			buffer_manager.writeFile("", File, 1, i);//先把块写空
 			for (int j = 0; j < Leaf->key_num; j++) {
 				string key = to_string(Leaf->key[j]);		 //key
 				string block_num = to_string(Leaf->value[j]);//table中key对应的block_num
@@ -59,7 +59,7 @@ Index_Manager::~Index_Manager() {
 				data.append(block_num);
 				data = data + '$';
 			}
-			buffer_manager.writeFile(data, file_name, 1, i);
+			buffer_manager.writeFile(data, File, 1, i);
 			Leaf = Leaf->next_leaf;
 		}
 		delete i_float->second;
@@ -67,10 +67,10 @@ Index_Manager::~Index_Manager() {
 	}
 	for (i_string = BPT_String.begin(); i_string != BPT_String.end();) {
 		Node<string>* Leaf = i_string->second->MostLeftLeaf;//第一个叶节点
-		string file_name = i_string->first;			  //索引文件名
+		string File = i_string->first;			  //索引文件名
 		for (int i = 0; Leaf != NULL; i++) {		  //遍历所有叶节点把数据重新写一遍
 			string data;
-			buffer_manager.writeFile("", file_name, 1, i);//先把块写空
+			buffer_manager.writeFile("", File, 1, i);//先把块写空
 			for (int j = 0; j < Leaf->key_num; j++) {
 				string key = Leaf->key[j];		 //key
 				string block_num = to_string(Leaf->value[j]);//table中key对应的block_num
@@ -79,7 +79,7 @@ Index_Manager::~Index_Manager() {
 				data.append(block_num);
 				data = data + '$';
 			}
-			buffer_manager.writeFile(data, file_name, 1, i);
+			buffer_manager.writeFile(data, File, 1, i);
 			Leaf = Leaf->next_leaf;
 		}
 		delete i_string->second;
@@ -162,18 +162,16 @@ void Index_Manager::Read_Index(string File, Type type, int n) {
 //创建索引文件——√
 void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 	Table table = catalog_manager.getTable(Table_name);
-	//维护hasindex
-	table.attributes[column].hasindex = true;
-	Index index;
-	index.indexName = File;
-	index.column = column;
-	index.tableName = Table_name;
-	index.type = type;
-	//创建int类型的索引文件
-	if (type == INT) {
+	////维护hasindex
+	//table.attributes[column].hasindex = true;
+	//Index index;
+	//index.indexName = File;
+	//index.column = column;
+	//index.tableName = Table_name;
+	//index.type = type;
+	if (type == INT) {//创建int类型的索引文件
 		int Rank = BLOCK_SIZE / (10 + sizeof('$') + sizeof('|') + 10);//10:block_num对应的int和key对应的int
 		int symbol_num = table.attriNum + 1;//每行数据中'|'字符的数目
-		Table table = catalog_manager.getTable(Table_name);
 		BPT<int>* bpt = new BPT<int>(Rank);
 		for (int i = 0; i < table.blockNum; i++) {
 			string data = buffer_manager.readFile(Table_name, 0, i);
@@ -196,14 +194,12 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 				}
 			}
 		}
-		index.blockNum = bpt->Leaf_num;//获得block数
-		BPT_Int.insert({ File, bpt });
+		//index.blockNum = bpt->Leaf_num;//获得block数
+		//BPT_Int.insert({ File, bpt });
 	}
-	//创建float类型的索引文件
-	else if (type == FLOAT) {
+	else if (type == FLOAT) {//创建float类型的索引文件
 		int Rank = BLOCK_SIZE / (9 + sizeof('$') + sizeof('|') + 10);//9：float占用的最大位数
 		int symbol_num = table.attriNum + 1;//每行数据中'|'字符的数目
-		Table table = catalog_manager.getTable(Table_name);
 		BPT<float>* bpt = new BPT<float>(Rank);
 		for (int i = 0; i < table.blockNum; i++) {
 			string data = buffer_manager.readFile(Table_name, 0, i);
@@ -226,14 +222,12 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 				}
 			}
 		}
-		index.blockNum = bpt->Leaf_num;//获得block数
-		BPT_Float.insert({ File, bpt });
+		//index.blockNum = bpt->Leaf_num;//获得block数
+		//BPT_Float.insert({ File, bpt });
 	}
-	//创建string类型的索引文件
-	else {
+	else {//创建string类型的索引文件
 		int Rank = BLOCK_SIZE / (sizeof(char) * n + sizeof('$') + sizeof('|') + 10);
 		int symbol_num = table.attriNum + 1;//每行数据中'|'字符的数目
-		Table table = catalog_manager.getTable(Table_name);
 		BPT<string>* bpt = new BPT<string>(Rank);
 		for (int i = 0; i < table.blockNum; i++) {
 			string data = buffer_manager.readFile(Table_name, 0, i);
@@ -256,23 +250,22 @@ void Index_Manager::Create_Index(string File, int column, Type type, int n) {
 				}
 			}
 		}
-		index.blockNum = bpt->Leaf_num;//获得block数
-		BPT_String.insert({ File, bpt });
+		//index.blockNum = bpt->Leaf_num;//获得block数
+		//BPT_String.insert({ File, bpt });
 	}
-	catalog_manager.createIndex(index);
+	/*catalog_manager.createIndex(index);*/
 }
 
 //删除索引文件
 void Index_Manager::Drop_Index(string File, Type type) {
-	//删除索引文件
-	buffer_manager.deleteFile(File, 1);
-	//维护hasindex
-	Table table = catalog_manager.getTable(Table_name);
-	Index index = catalog_manager.getIndex(File);
-	int column = index.column;
-	table.attributes[column].hasindex = false;
-	//删除catalog上的索引，清理内存
-	catalog_manager.dropIndex(File);
+	buffer_manager.deleteFile(File, 1);//删除索引文件
+	////维护hasindex
+	//Table table = catalog_manager.getTable(Table_name);
+	//Index index = catalog_manager.getIndex(File);
+	//int column = index.column;
+	//table.attributes[column].hasindex = false;
+	////删除catalog上的索引，清理内存
+	//catalog_manager.dropIndex(File);
 	if (type == INT) {
 		delete BPT_Int.find(File)->second;
 		BPT_Int.erase(File);
@@ -293,41 +286,38 @@ void Index_Manager::Drop_All() {
 	map<string, BPT<float>*>::iterator i_float;
 	map<string, BPT<string>*>::iterator i_string;
 	for (i_int = BPT_Int.begin(); i_int != BPT_Int.end();) {
-		//删除索引文件
-		buffer_manager.deleteFile(i_int->first, 1);
-		//维护hasindex
-		Index index = catalog_manager.getIndex(i_int->first);
-		Table table = catalog_manager.getTable(Table_name);
-		int column = index.column;
-		table.attributes[column].hasindex = false;
-		//删除catalog上的索引，清理内存
-		catalog_manager.dropIndex(i_int->first);
+		buffer_manager.deleteFile(i_int->first, 1);//删除索引文件
+		////维护hasindex
+		//Index index = catalog_manager.getIndex(i_int->first);
+		//Table table = catalog_manager.getTable(Table_name);
+		//int column = index.column;
+		//table.attributes[column].hasindex = false;
+		////删除catalog上的索引，清理内存
+		//catalog_manager.dropIndex(i_int->first);
 		delete i_int->second;
 		BPT_Int.erase(i_int++);
 	}
 	for (i_float = BPT_Float.begin(); i_float != BPT_Float.end();) {
-		//删除索引文件
-		buffer_manager.deleteFile(i_float->first, 1);
-		//维护hasindex
-		Index index = catalog_manager.getIndex(i_int->first);
-		Table table = catalog_manager.getTable(Table_name);
-		int column = index.column;
-		table.attributes[column].hasindex = false;
-		//删除catalog上的索引，清理内存
-		catalog_manager.dropIndex(i_float->first);
+		buffer_manager.deleteFile(i_float->first, 1);//删除索引文件
+		////维护hasindex
+		//Index index = catalog_manager.getIndex(i_int->first);
+		//Table table = catalog_manager.getTable(Table_name);
+		//int column = index.column;
+		//table.attributes[column].hasindex = false;
+		////删除catalog上的索引，清理内存
+		//catalog_manager.dropIndex(i_float->first);
 		delete i_float->second;
 		BPT_Float.erase(i_float++);
 	}
 	for (i_string = BPT_String.begin(); i_string != BPT_String.end();) {
-		//删除索引文件
-		buffer_manager.deleteFile(i_string->first, 1);
-		//维护hasindex
-		Index index = catalog_manager.getIndex(i_int->first);
-		Table table = catalog_manager.getTable(Table_name);
-		int column = index.column;
-		table.attributes[column].hasindex = false;
-		//删除catalog上的索引，清理内存
-		catalog_manager.dropIndex(i_string->first);
+		buffer_manager.deleteFile(i_string->first, 1);//删除索引文件
+		////维护hasindex
+		//Index index = catalog_manager.getIndex(i_int->first);
+		//Table table = catalog_manager.getTable(Table_name);
+		//int column = index.column;
+		//table.attributes[column].hasindex = false;
+		////删除catalog上的索引，清理内存
+		//catalog_manager.dropIndex(i_string->first);
 		delete i_string->second;
 		BPT_String.erase(i_string++);
 	}
