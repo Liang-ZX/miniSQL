@@ -17,8 +17,7 @@ public:
 	~Index_Manager();
 	//从硬盘中读取已存在的索引文件
 	void Read_Index(string File, Type type, int n = 0);
-	//创建新的索引文件
-	//参数n为char(n)中的n，column为表格中的对应的属性所在的列数(从0计数)
+	//创建索引文件, n为char(n)中的n，column为属性所在的列数(从0计数)
 	void Create_Index(string File, int column, Type type, int n = 0);
 	//删除索引文件
 	void Drop_Index(string File, Type type);
@@ -26,8 +25,7 @@ public:
 	void Drop_All();
 	//清空全部索引文件
 	void Clear_Index();
-	//查询操作：
-	//五个重载函数，前三个为等值查询，后两个为范围查询
+	//查询操作：五个重载函数，前三个为等值查询，后两个为范围查询
 	bool Search(string File, int k, int& block_num);
 	bool Search(string File, float k, int& block_num);
 	bool Search(string File, string k, int& block_num);

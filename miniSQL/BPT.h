@@ -198,7 +198,7 @@ unsigned int Node<T>::insert_key(T k) {
 		unsigned int index = 0;
 		bool exist = search_key(k, index);//查找大于或等于k的最小值的index
 		if (exist) {
-			cout << "In insert_key(T k), k is already exist in position: " << index << endl;
+			/*cout << "In insert_key(T k), k is already exist in position: " << index << endl;*/
 			return index;
 		}
 		else {
@@ -441,7 +441,7 @@ bool BPT<T>::Insert_Adjust(Node<T>* node) {
 template<typename T>
 bool BPT<T>::Delete_Key(T k) {
 	if (!Root) {
-		cout << "This is an empty BPtree!" << endl;
+		/*cout << "This is an empty BPtree!" << endl;*/
 		return false;
 	}
 	else {
@@ -454,7 +454,7 @@ bool BPT<T>::Delete_Key(T k) {
 			return Delete_Adjust(leaf);
 		}
 		else {
-			cout << "Key " << k << " dosen't exist!" << endl;
+			/*cout << "Key " << k << " dosen't exist!" << endl;*/
 			return false;
 		}
 	}
