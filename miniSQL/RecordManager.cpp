@@ -536,7 +536,7 @@ bool RecordManager::CheckUnique(const Table &table,const Tuple &tuple)
     if(unique.size() == 0) return 1;        //no unique column
     int unique_num = unique.size();
     vector<Tuple> TupleList;
-    bool NeedConvert = 0;                    //if any unique attribut does not have index, we need to convert all records
+    bool NeedConvert = 0;                    //if any unique attribute does not have index, we need to convert all records
     for (int i = 0; i < unique_num; i++)
     {
         if (table.attributes[unique[i]].hasindex == false) NeedConvert = 1;
@@ -638,10 +638,10 @@ int RecordManager::GetRecordBlock(const Table &table,Index_Manager &index_manage
 
 bool RecordManager::GetIndexRange(const Table &table,const Index &index,const vector<Condition> &Conditionlist,Item &minItem,Item &maxItem)
 {
-    minItem.f_data = -1e8;
-    minItem.i_data = -1e8;
-    maxItem.f_data = 1e8;
-    maxItem.i_data = 1e8;
+    minItem.f_data = -2147483648;
+    minItem.i_data = -2147483648;
+    maxItem.f_data = 2147483647;
+    maxItem.i_data = 2147483647;
     // minItem.str_data.assign("");
     // maxItem.str_data.assign("");
     bool flag = 0;
@@ -652,7 +652,7 @@ bool RecordManager::GetIndexRange(const Table &table,const Index &index,const ve
         {
             flag = 1;
             minItem.type = maxItem.type = Conditionlist[i].item.type;
-            if(Conditionlist[i].relation == GREATER || Conditionlist[i].relation == GREATER_EQUAL) 
+            if(Conditionlist[i].relation == GREATER) 
             {
                 // if(Conditionlist[i].item.type == 0)
                 minItem.f_data = max(Conditionlist[i].item.f_data,minItem.f_data);
@@ -661,13 +661,23 @@ bool RecordManager::GetIndexRange(const Table &table,const Index &index,const ve
                 //     if(minItem.str_data.length() == 0 || minItem.str_data < Conditionlist[i].item.str_data)
                 //         minItem.str_data.assign(Conditionlist[i].item.str_data);
             }
-            else if(Conditionlist[i].relation == LESS_EQUAL || Conditionlist[i].relation == LESS)
+            else if(Conditionlist[i].relation == GREATER_EQUAL)
+            {
+                minItem.f_data = max(Conditionlist[i].item.f_data,minItem.f_data - (float)0.001);
+                minItem.i_data = max(Conditionlist[i].item.i_data,minItem.i_data - 1);
+            }
+            else if(Conditionlist[i].relation == LESS)
             {
                 maxItem.f_data = min(Conditionlist[i].item.f_data,maxItem.f_data);
                 maxItem.i_data = min(Conditionlist[i].item.i_data,maxItem.i_data);
                 // if(Conditionlist[i].item.type > 0)
                 //     if(maxItem.str_data.length() == 0 || maxItem.str_data > Conditionlist[i].item.str_data)
                 //         maxItem.str_data.assign(Conditionlist[i].item.str_data);
+            }
+            else if(Conditionlist[i].relation == LESS_EQUAL)
+            {
+                maxItem.f_data = min(Conditionlist[i].item.f_data,maxItem.f_data + (float)0.001);
+                maxItem.i_data = min(Conditionlist[i].item.i_data,maxItem.i_data + 1);
             }
         }
     }
