@@ -34,7 +34,7 @@ int Interpreter::readinCondition(vector<Condition>& ConditionList, Table & table
 
 		if ((word = getWord(s, pos)).empty())
 			throw SyntaxError();
-		// ÀàÐÍ×ª»»
+		// Ã€Ã ÃÃÃ—ÂªÂ»Â»
 		istringstream value(word);
 		bool found_attr = false;
 		for (auto attr : table.attributes) {
@@ -44,7 +44,8 @@ int Interpreter::readinCondition(vector<Condition>& ConditionList, Table & table
 				tmp_cond.item.type = tmp_type;
 				if (tmp_type == -1) {
 					float f_data;
-					if (!(value >> f_data))
+					value >> f_data;
+					if (!value.eof())
 					{
 						cout << "Incorrect float value: '" << word << "' for column '" << attr.name << "'" << endl;
 						return 1;
@@ -53,7 +54,8 @@ int Interpreter::readinCondition(vector<Condition>& ConditionList, Table & table
 				}
 				else if (tmp_type == 0) {
 					int i_data;
-					if (!(value >> i_data))
+					value >> i_data;
+					if (!value.eof())
 					{
 						cout << "Incorrect float value: '" << word << "' for column '" << attr.name << "'" << endl;
 						return 1;
@@ -387,7 +389,8 @@ int Interpreter::interprete (string &s)
 				int type = insertTable.attributes[i].type;
 				if (type == -1) {
 					float f_data;
-					if (value >> f_data)
+					value >> f_data;
+					if (value.eof())
 					{
 						insertTuple.AddItem(f_data);
 					}
@@ -399,7 +402,8 @@ int Interpreter::interprete (string &s)
 				}
 				else if (type == 0) {
 					int i_data;
-					if (value >> i_data)
+					value >> i_data;
+					if (value.eof())
 					{
 						insertTuple.AddItem(i_data);
 					}
