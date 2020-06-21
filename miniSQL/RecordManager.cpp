@@ -449,7 +449,7 @@ int RecordManager::DeleteRecord(const Table &table,string &block_data,const vect
     return count;
 }
 
-int RecordManager::BlocktoTuples(const Table &table,string &block_data,vector<Tuple> TupleList)const
+int RecordManager::BlocktoTuples(const Table &table,string &block_data,vector<Tuple> &TupleList)const
 {
     int block_length = block_data.length();
     int count = 0;
@@ -539,7 +539,11 @@ bool RecordManager::CheckUnique(const Table &table,const Tuple &tuple)
     bool NeedConvert = 0;                    //if any unique attribute does not have index, we need to convert all records
     for (int i = 0; i < unique_num; i++)
     {
-        if (table.attributes[unique[i]].hasindex == false) NeedConvert = 1;
+        if (table.attributes[unique[i]].hasindex == false)
+        {
+            NeedConvert = 1;
+            break;
+        }
     }
     if(NeedConvert)
         for(int block_num = 0;block_num < table.blockNum;block_num++)       //convert all records into tuplelist
@@ -562,7 +566,7 @@ bool RecordManager::CheckUnique(const Table &table,const Tuple &tuple)
                     flag = CheckConditionData(TupleList[tuple_id].ItemList[unique[i]].i_data, EQUAL, tuple.ItemList[unique[i]].i_data);
                 else if (table.attributes[unique[i]].type > 0 && table.attributes[unique[i]].type < 256)
                     flag = CheckConditionData(TupleList[tuple_id].ItemList[unique[i]].str_data, EQUAL, tuple.ItemList[unique[i]].str_data);
-                if (!flag) return 0;
+                if (flag) return 0;
             }
         }
         else //with index to check if exists
@@ -649,11 +653,11 @@ int RecordManager::GetRecordBlock(const Table &table,Index_Manager &index_manage
                     pos++;
                     continue;
                 }
-                else pos++;
+                else pos++;                                         //在交集中
             }
-            return block_id.size();                                 //在交集中
+            //return block_id.size();                              
         }
-        if (block_id.size() == 0) return 0;
+        if (!first && block_id.size() == 0) return 0;
 
     }
     if (first) return -1;   //没有index可以用
@@ -687,8 +691,8 @@ bool RecordManager::GetIndexRange(const Table &table,const Index &index,const ve
             }
             else if(Conditionlist[i].relation == GREATER_EQUAL)
             {
-                minItem.f_data = max(Conditionlist[i].item.f_data,minItem.f_data - (float)0.001);
-                minItem.i_data = max(Conditionlist[i].item.i_data,minItem.i_data - 1);
+                minItem.f_data = max(Conditionlist[i].item.f_data - (float)0.001,minItem.f_data);
+                minItem.i_data = max(Conditionlist[i].item.i_data - 1,minItem.i_data);
             }
             else if(Conditionlist[i].relation == LESS)
             {
@@ -700,8 +704,8 @@ bool RecordManager::GetIndexRange(const Table &table,const Index &index,const ve
             }
             else if(Conditionlist[i].relation == LESS_EQUAL)
             {
-                maxItem.f_data = min(Conditionlist[i].item.f_data,maxItem.f_data + (float)0.001);
-                maxItem.i_data = min(Conditionlist[i].item.i_data,maxItem.i_data + 1);
+                maxItem.f_data = min(Conditionlist[i].item.f_data + (float)0.001,maxItem.f_data);
+                maxItem.i_data = min(Conditionlist[i].item.i_data + 1,maxItem.i_data);
             }
         }
     }
