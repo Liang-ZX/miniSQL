@@ -4,7 +4,7 @@
 void API::createTable(Table& table)
 {
 	if (catalog_manager.existTable(table.name) == true) {
-		cout << "ERROR: Table " << table.name << " already exists!\n";
+		cout << "ERROR: Table '" << table.name << "' already exists!\n";
 		return;
 	}
 	for (int i = 0; i < table.attriNum; i++)
@@ -32,7 +32,7 @@ void API::createTable(Table& table)
 			index_manager.Create_Index(index.indexName, index.column, checkType(index.type), index.type);
 		}  
 	
-	cout << "Table " << table.name << " has been created successfully!\n";
+	cout << "Table '" << table.name << "' has been created successfully!\n";
 	return;
 }
 
@@ -41,14 +41,14 @@ void API::createTable(Table& table)
 void API::dropTable(const string& tableName)
 {
 	if (catalog_manager.existTable(tableName) == false) {
-		cout << "ERROR: Table " << tableName << " does not exist!\n";
+		cout << "ERROR: Table '" << tableName << "' does not exist!\n";
 		return;
 	}
 	Index_Manager index(tableName);
 	index.Drop_All();
 	catalog_manager.dropTable(tableName);
 	record_manager.DropTableFile(tableName);
-	cout << "Table " << tableName << " has been dropped successfully!\n";
+	cout << "Table '" << tableName << "' has been dropped successfully!\n";
 }
 
 //interpreter根据信息创建tuple并传入
@@ -56,7 +56,7 @@ void API::dropTable(const string& tableName)
 void API::insertRecord(const string& tableName, const Tuple& tuple)
 {
 	if (catalog_manager.existTable(tableName) == false) {
-		cout << "ERROR: Table " << tableName << " does not exist!\n";
+		cout << "ERROR: Table '" << tableName << "' does not exist!\n";
 		return;
 	}
 
@@ -67,47 +67,47 @@ void API::insertRecord(const string& tableName, const Tuple& tuple)
 void API::selectRecord(const string& tableName)
 {
 	if (catalog_manager.existTable(tableName) == false) {
-		cout << "ERROR: Table " << tableName << " does not exist!\n";
+		cout << "ERROR: Table '" << tableName << "' does not exist!\n";
 		return;
 	}
 	string res;
 	int num = record_manager.SelectRecord(tableName, res);
 	if (num == -1) return;
 	else if (num == 0) {
-		cout << "No data is found!\n";
+		cout << "Empty set.\n";
 		return;
 	}
-	else show(tableName, res, num);
+	show(tableName, res, num);
+	if (num == 1) cout << num << " row in set.\n";
+	else cout << num << " rows in set.\n";
 }
 
 //interpreter根据信息建立vector<Condition>并传入
 
 void API::selectRecord(const string& tableName, const vector<Condition>& ConditionList)
 {
-//	cout << "hello" << endl;
 	if (catalog_manager.existTable(tableName) == false) {
-		cout << "ERROR: Table " << tableName << " does not exist!\n";
+		cout << "ERROR: Table '" << tableName << "' does not exist!\n";
 		return;
 	}
-//	cout << "hello" << endl;
 	string res;
 	int num = record_manager.SelectRecord(tableName, ConditionList, res);
-//	cout << "hello" << endl;
 	if (num == -1) {
-		cout << "bye" << endl;
 		return;
 	}
 	else if (num == 0) {
-		cout << "No data is found!\n";
+		cout << "Empty set.\n";
 		return;
 	}
-	else show(tableName, res, num);
+	show(tableName, res, num);
+	if (num == 1) cout << num << " row in set.\n";
+	else cout << num << " rows in set.\n";
 }
 
 void API::deleteRecord(const string& tableName)
 {
 	if (catalog_manager.existTable(tableName) == false) {
-		cout << "ERROR: Table " << tableName << " does not exist!\n";
+		cout << "ERROR: Table '" << tableName << "' does not exist!\n";
 		return;
 	}
 	int num = record_manager.DeleteRecord(tableName);
@@ -121,7 +121,7 @@ void API::deleteRecord(const string& tableName, const vector<Condition>& Conditi
 {
 	if (catalog_manager.existTable(tableName) == false)
 	{
-		cout << "ERROR: Table " << tableName << " does not exist!\n";
+		cout << "ERROR: Table '" << tableName << "' does not exist!\n";
 		return;
 	}
 	int num = record_manager.DeleteRecord(tableName, ConditionList);
@@ -134,9 +134,8 @@ void API::deleteRecord(const string& tableName, const vector<Condition>& Conditi
 
 void API::createIndex(Index& index)
 {
-//	cout << "hello" << endl;
 	if (catalog_manager.existIndex(index.indexName) == true) {
-		cout << "ERROR: Index " << index.indexName << " already exists!\n";
+		cout << "ERROR: Index '" << index.indexName << "' already exists!\n";
 		return;
 	}
 	Table &table = catalog_manager.getTable(index.tableName);
@@ -153,13 +152,13 @@ void API::createIndex(Index& index)
 	catalog_manager.createIndex(index);
 	Index_Manager index_manager(index.tableName);
 	index_manager.Create_Index(index.indexName, index.column, checkType(index.type), index.type);
-	cout << "Index " << index.indexName << " has been created successfully!\n";
+	cout << "Index '" << index.indexName << "' has been created successfully!\n";
 }
 
 void API::dropIndex(const string& indexName)
 {
 	if (catalog_manager.existIndex(indexName) == false) {
-		cout << "ERROR: Index " << indexName << " does not exist!\n";
+		cout << "ERROR: Index '" << indexName << "' does not exist!\n";
 		return;
 	}
 	Index index = catalog_manager.getIndex(indexName);
@@ -170,7 +169,7 @@ void API::dropIndex(const string& indexName)
 
 	table.attributes[index.column].hasindex = false;
 	catalog_manager.dropIndex(index);
-	cout << "Index " << indexName << " has been dropped successfully!\n";
+	cout << "Index '" << indexName << "' has been dropped successfully!\n";
 }
 
 Type API::checkType(int type)
