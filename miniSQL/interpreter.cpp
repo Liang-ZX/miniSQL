@@ -43,23 +43,43 @@ int Interpreter::readinCondition(vector<Condition>& ConditionList, Table & table
 				int tmp_type = attr.type;
 				tmp_cond.item.type = tmp_type;
 				if (tmp_type == -1) {
-					value >> tmp_cond.item.f_data;
+					float f_data;
+					if (!(value >> f_data))
+					{
+						cout << "Incorrect float value: '" << word << "' for column '" << attr.name << "'" << endl;
+						return 1;
+					}
+					tmp_cond.item.f_data = f_data;
 				}
 				else if (tmp_type == 0) {
-					value >> tmp_cond.item.i_data;
+					int i_data;
+					if (!(value >> i_data))
+					{
+						cout << "Incorrect float value: '" << word << "' for column '" << attr.name << "'" << endl;
+						return 1;
+					}
+					tmp_cond.item.i_data = i_data;
 				}
 				else if (tmp_type >= 1 && tmp_type <= 255) {
-					value >> tmp_cond.item.str_data;
+					string s_data;
+					value >> s_data;
+					if (!(s_data[0] == '\'' && s_data[s_data.length() - 1] == '\'' \
+						|| s_data[0] == '\"' && s_data[s_data.length() - 1] == '\"'))
+					{
+						cout << "Incorrect char() value: '" << word << "' for column '" << attr.name << "'" << endl;
+						return 1;
+					}
+					tmp_cond.item.str_data = s_data.substr(1, s_data.length() - 2);
 				}
 				else {
-					cout << "ERROR: Unsupported Attribute Type " << word << "." << endl;
+					cout << "ERROR: Unsupported Attribute Type '" << word << "'." << endl;
 					return 1;
 				}
 				break;
 			}
 		}
 		if (found_attr == false) {
-			cout << "ERROR: No such attribute " << tmp_cond.AttrName << "." << endl;
+			cout << "ERROR: Unkonwn attribute name '" << tmp_cond.AttrName << "'." << endl;
 			return 1;
 		}
 		ConditionList.push_back(tmp_cond);
@@ -367,18 +387,39 @@ int Interpreter::interprete (string &s)
 				int type = insertTable.attributes[i].type;
 				if (type == -1) {
 					float f_data;
-					value >> f_data;
-					insertTuple.AddItem(f_data);
+					if (value >> f_data)
+					{
+						insertTuple.AddItem(f_data);
+					}
+					else {
+						cout << "Incorrect float value: '" << word << "' for column '" << insertTable.attributes[i].name << "'" << endl;
+						return 1;
+					}
+				
 				}
 				else if (type == 0) {
 					int i_data;
-					value >> i_data;
-					insertTuple.AddItem(i_data);
+					if (value >> i_data)
+					{
+						insertTuple.AddItem(i_data);
+					}
+					else {
+						cout << "Incorrect integer value: '" << word << "' for column '" << insertTable.attributes[i].name << "'" << endl;
+						return 1;
+					}
 				}
 				else if (type >= 1 && type <= 255) {
 					string s_data;
 					value >> s_data;
-					insertTuple.AddItem(s_data);
+					if (s_data[0] == '\'' && s_data[s_data.length() - 1] == '\'' \
+						|| s_data[0] == '\"' && s_data[s_data.length() - 1] == '\"')
+					{
+						insertTuple.AddItem(s_data.substr(1, s_data.length()-2));
+					}
+					else {
+						cout << "Incorrect char() value: '" << word << "' for column '" << insertTable.attributes[i].name << "'" << endl;
+						return 1;
+					}
 				}
 				else
 					throw SyntaxError();
@@ -407,7 +448,7 @@ int Interpreter::interprete (string &s)
 				throw SyntaxError();
 				//cout << "ERROR: command " << word << " not found." << endl;
 			}
-			return 0; //ÇÃÈëÒ»¸ö»Ø³µ
+			return 0;
 		}
 	}
 	catch (SyntaxError & err)
@@ -437,7 +478,7 @@ string Interpreter::getWord(string & s, int & pos)
 		idx2 = pos;
 		return s.substr(idx1, idx2 - idx1);
 	}
-	else if (s[pos] == '\'')  // insert with  '
+/*	else if (s[pos] == '\'')  // insert with  '
 	{
 		pos++;
 		while (s[pos] != '\0' && s[pos != '\'']) {
@@ -453,7 +494,7 @@ string Interpreter::getWord(string & s, int & pos)
 		else {
 			return "";
 		}
-	}
+	}*/
 	else  // words
 	{
 		while (s[pos] != '\0' && s[pos] != ' ' && s[pos] != '\n' && s[pos] != ',' && s[pos] != '(' && s[pos] != ')')
