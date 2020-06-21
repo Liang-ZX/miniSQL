@@ -84,13 +84,19 @@ void API::selectRecord(const string& tableName)
 
 void API::selectRecord(const string& tableName, const vector<Condition>& ConditionList)
 {
+	cout << "hello" << endl;
 	if (catalog_manager.existTable(tableName) == false) {
 		cout << "ERROR: Table " << tableName << " does not exist!\n";
 		return;
 	}
+//	cout << "hello" << endl;
 	string res;
 	int num = record_manager.SelectRecord(tableName, ConditionList, res);
-	if (num == -1) return;
+	cout << "hello" << endl;
+	if (num == -1) {
+		cout << "bye" << endl;
+		return;
+	}
 	else if (num == 0) {
 		cout << "No data is found!\n";
 		return;
@@ -175,13 +181,11 @@ Type API::checkType(int type)
 }
 
 void API::show(string tableName, string& res, int num) {
-	cout << res << endl;
-	/*	Table table = catalog_manager.getTable(tableName);
+	Table table = catalog_manager.getTable(tableName);
 	int* p = new int[table.attriNum];
 	int temp;
 	for (int i = 0; i < table.attriNum; i++) {		
 		p[i] = table.attributes[i].name.length();
-//		cout << table.attributes[i].name << " " << p[i] << endl;
 	}
 		
 	int data_length = res.length();
@@ -192,37 +196,35 @@ void API::show(string tableName, string& res, int num) {
 				pos++;
 			}
 			if (pos - h > p[j]) p[j] = pos - h;
-			cout << res.substr(h, pos - 1) << " " << pos - h << " " << p[j] << endl;
 			pos++; h = pos;
 		}
-		pos += 3; h = pos;
+		pos += 2; h = pos;
 	}
 	showl(table.attriNum, p);
 	for (int i = 0; i < table.attriNum; i++) {
 		cout << "|"; 
-		spa = p[i] - table.attributes[i].name.length() + 2;
-		shows(spa / 2);
+		shows(1);
 		cout << table.attributes[i].name;
-		shows(spa - spa / 2);
+		shows(p[i] - table.attributes[i].name.length() + 1);
 	}
 	cout << "|\n";
-	h = pos = 0;
+	showl(table.attriNum, p);
+	h = pos = 1;
 	for (int i = 0; i < num; i++) {
-		showl(table.attriNum, p);
 		for (int j = 0; j < table.attriNum; j++) {
 			while (pos < data_length && res[pos] != ITEM_SEPARATOR && res[pos] != RECORD_SEPARATOR) {
 				pos++;
 			}
 			cout << "|";
-			spa = p[i] - (pos - h) + 2;
-			shows(spa / 2);
-			cout << res.substr(h, pos - 1);
-			shows(spa - spa / 2);
+			shows(1);
+			cout << res.substr(h, pos - h);
+			shows(p[j] - (pos - h) + 1);
 			pos++; h = pos;
 		}
+		pos += 2; h = pos;
 		cout << "|\n";
 	}
-*/
+	showl(table.attriNum, p);
 }
 
 void API::showm(int num) {
