@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 ﻿/*
 #include "BPT.h"
 #include "indexmanager.h"
@@ -48,7 +47,7 @@ int main() {
 	data.close();
 	system("pause");
 }*/
-=======
+/*
 ﻿//#include "BPT.h"
 //#include "indexmanager.h"
 //#include "buffermanager.h"
@@ -109,4 +108,4 @@ int main() {
 //	bpt1.Print();
 //	data.close();
 //	system("pause");
-//}
+//}*/
