@@ -12,8 +12,8 @@ extern CatalogManager catlog_manager;
 
 class API {
 public:
-	API(){}
-	~API(){}
+	API() {}
+	~API() {}
 
 	//interpreter根据信息创建表并传入
 	void createTable(Table& table);
@@ -28,21 +28,27 @@ public:
 
 	//interpreter根据信息建立vector<Condition>并传入
 	void selectRecord(const string& tableName, const vector<Condition>& ConditionList);
-	
+
 	void deleteRecord(const string& tableName);
-	
+
 	//interpreter根据信息建立vector<Condition>并传入
 	void deleteRecord(const string& tableName, const vector<Condition>& ConditionList);
-	
+
 	//interpreter根据信息创建索引并传入
 	void createIndex(Index& index);
-	
+
 	void dropIndex(const string& indexName);
 
 private:
 	Type checkType(int type);
 
-	void show(string &res);
+	void show(string tableName, string& res, int num);
+
+	void showm(int num);
+
+	void shows(int num);
+
+	void showl(int num, int* p);
 };
 
 #endif
