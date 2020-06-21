@@ -623,17 +623,41 @@ int RecordManager::GetRecordBlock(const Table &table,Index_Manager &index_manage
             }
         }
     }
+    //区间查找
+    bool first = 1;
     for(int i = 0;i < IndexList.size();i++)
     {
         Item minItem,maxItem;
         if(GetIndexRange(table,IndexList[i],ConditionList,minItem,maxItem))
         {
-            if(minItem.type == -1) index_manager.Search(IndexList[i].indexName,minItem.f_data,maxItem.f_data,block_id);
-            else if(minItem.type == 0) index_manager.Search(IndexList[i].indexName,minItem.i_data,maxItem.i_data,block_id);
-            return block_id.size();
+            if(first)
+            {
+                first = 0;
+                if(minItem.type == -1) index_manager.Search(IndexList[i].indexName,minItem.f_data,maxItem.f_data,block_id);
+                else if(minItem.type == 0) index_manager.Search(IndexList[i].indexName,minItem.i_data,maxItem.i_data,block_id);
+                continue;
+            }
+            set<int> TempBlockId;
+            if(minItem.type == -1) index_manager.Search(IndexList[i].indexName,minItem.f_data,maxItem.f_data,TempBlockId);
+            else if(minItem.type == 0) index_manager.Search(IndexList[i].indexName,minItem.i_data,maxItem.i_data,TempBlockId);
+            for(set<int>::iterator pos = block_id.begin();pos != block_id.end();)
+            {
+                if(TempBlockId.find(*pos) == TempBlockId.end())     //不在交集中
+                {
+                    int tp = *pos;
+                    block_id.erase(tp);
+                    pos++;
+                    continue;
+                }
+                else pos++;
+            }
+            return block_id.size();                                 //在交集中
         }
+        if (block_id.size() == 0) return 0;
+
     }
-    return -1;
+    if (first) return -1;   //没有index可以用
+    else return block_id.size();
 }
 
 bool RecordManager::GetIndexRange(const Table &table,const Index &index,const vector<Condition> &Conditionlist,Item &minItem,Item &maxItem)

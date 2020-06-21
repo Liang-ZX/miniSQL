@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
+#include <algorithm>
 #include <set>
 #include "Tuple.h"
 #include "buffermanager.h"
