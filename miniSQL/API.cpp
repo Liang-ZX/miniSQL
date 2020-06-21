@@ -26,10 +26,10 @@ void API::createTable(Table& table)
 			index.type = tb.attributes[i].type;
 
 			tb.attributes[i].hasindex = true;
+			tb.attributes[i].isUnique = true;
 
 			catalog_manager.createIndex(index);
 			index_manager.Create_Index(index.indexName, index.column, checkType(index.type), index.type);
-//			cout << index.indexName << endl;
 		}  
 	
 	cout << "Table " << table.name << " has been created successfully!\n";
@@ -84,7 +84,7 @@ void API::selectRecord(const string& tableName)
 
 void API::selectRecord(const string& tableName, const vector<Condition>& ConditionList)
 {
-	cout << "hello" << endl;
+//	cout << "hello" << endl;
 	if (catalog_manager.existTable(tableName) == false) {
 		cout << "ERROR: Table " << tableName << " does not exist!\n";
 		return;
@@ -92,7 +92,7 @@ void API::selectRecord(const string& tableName, const vector<Condition>& Conditi
 //	cout << "hello" << endl;
 	string res;
 	int num = record_manager.SelectRecord(tableName, ConditionList, res);
-	cout << "hello" << endl;
+//	cout << "hello" << endl;
 	if (num == -1) {
 		cout << "bye" << endl;
 		return;
