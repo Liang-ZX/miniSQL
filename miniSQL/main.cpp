@@ -15,6 +15,7 @@ int main()
 	string query;
 	while (true)
 	{
+		int status = 0;
 		if (readFile) {
 			file.open(interpreter.execFile);
 			if (!file.is_open()) {
@@ -24,18 +25,20 @@ int main()
 			}
 			while (getline(file, query, ';'))
 			{
-				int status = interpreter.interprete(query);
+				status = interpreter.interprete(query);
 				if (status == 200)
 					break; //quit
 			}
 			file.close();
 			readFile = 0;
 			interpreter.execFile = "";
+			if (status == 200)
+				break;
 		}
 		else {
 			cout << "minisql>>>";
 			getline(cin, query, ';');
-			int status = interpreter.interprete(query);
+			status = interpreter.interprete(query);
 			if (status == 200) {
 				break;
 			}

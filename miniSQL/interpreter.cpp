@@ -482,23 +482,6 @@ string Interpreter::getWord(string & s, int & pos)
 		idx2 = pos;
 		return s.substr(idx1, idx2 - idx1);
 	}
-/*	else if (s[pos] == '\'')  // insert with  '
-	{
-		pos++;
-		while (s[pos] != '\0' && s[pos != '\'']) {
-			pos++;
-		}
-		if (s[pos] == '\'')
-		{
-			idx1++;
-			idx2 = pos;
-			pos++;
-			return s.substr(idx1, idx2 - idx1);
-		}
-		else {
-			return "";
-		}
-	}*/
 	else  // words
 	{
 		while (s[pos] != '\0' && s[pos] != ' ' && s[pos] != '\n' && s[pos] != ',' && s[pos] != '(' && s[pos] != ')')
