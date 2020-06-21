@@ -83,7 +83,7 @@ Index_Manager::~Index_Manager() {
 }
 
 void Index_Manager::Read_Index(string File, Type type, int n) {//¶ÁÈ¡Ó²ÅÌÖÐµÄË÷ÒýÎÄ¼þ
-	Index index = catalog_manager.getIndex(File);
+	Index &index = catalog_manager.getIndex(File);
 	if (type == INT) {
 		int Rank = BLOCK_SIZE / (10 + sizeof('$') + sizeof('|') + 10);//10:block_num¶ÔÓ¦µÄintºÍkey¶ÔÓ¦µÄint
 		BPT<int>* bpt = new BPT<int>(Rank);
@@ -133,8 +133,8 @@ void Index_Manager::Read_Index(string File, Type type, int n) {//¶ÁÈ¡Ó²ÅÌÖÐµÄË÷Ò
 }
 
 void Index_Manager::Create_Index(string File, int column, Type type, int n) {
-	Table table = catalog_manager.getTable(Table_name);
-	Index index = catalog_manager.getIndex(File);
+	Table &table = catalog_manager.getTable(Table_name);
+	Index &index = catalog_manager.getIndex(File);
 	////Î¬»¤hasindex
 	//table.attributes[column].hasindex = true;
 	//Index index;
@@ -285,7 +285,7 @@ void Index_Manager::Clear_Index() {
 	map<string, BPT<string>*>::iterator i_string;
 	for (i_int = BPT_Int.begin(); i_int != BPT_Int.end(); i_int++) {//int
 		i_int->second->Delete_All();
-		Index index = catalog_manager.getIndex(i_int->first);
+		Index &index = catalog_manager.getIndex(i_int->first);
 		for (int i = 0; i < index.blockNum; i++) {
 			buffer_manager.writeFile("", i_int->first, 1, i);
 		}
@@ -293,7 +293,7 @@ void Index_Manager::Clear_Index() {
 	}
 	for (i_float = BPT_Float.begin(); i_float != BPT_Float.end(); i_float++) {//float
 		i_float->second->Delete_All();
-		Index index = catalog_manager.getIndex(i_float->first);
+		Index &index = catalog_manager.getIndex(i_float->first);
 		for (int i = 0; i < index.blockNum; i++) {
 			buffer_manager.writeFile("", i_int->first, 1, i);
 		}
@@ -301,7 +301,7 @@ void Index_Manager::Clear_Index() {
 	}
 	for (i_string = BPT_String.begin(); i_string != BPT_String.end(); i_string++) {//string
 		i_string->second->Delete_All();
-		Index index = catalog_manager.getIndex(i_string->first);
+		Index &index = catalog_manager.getIndex(i_string->first);
 		for (int i = 0; i < index.blockNum; i++) {
 			buffer_manager.writeFile("", i_int->first, 1, i);
 		}
@@ -342,21 +342,21 @@ bool Index_Manager::Search(string File, float min, float max, set<int>& block_nu
 
 //²åÈë²Ù×÷
 void Index_Manager::Insert(string File, int k, int block_num) {
-	Index index = catalog_manager.getIndex(File);
+	Index &index = catalog_manager.getIndex(File);
 	BPT<int>* bpt = BPT_Int.find(File)->second;
 	bpt->Insert_Key(k, block_num);
 	index.blockNum = bpt->Leaf_num;//¸üÐÂblock_num
 }
 
 void Index_Manager::Insert(string File, float k, int block_num) {
-	Index index = catalog_manager.getIndex(File);
+	Index &index = catalog_manager.getIndex(File);
 	BPT<float>* bpt = BPT_Float.find(File)->second;
 	bpt->Insert_Key(k, block_num);
 	index.blockNum = bpt->Leaf_num;//¸üÐÂblock_num
 }
 
 void Index_Manager::Insert(string File, string k, int block_num) {
-	Index index = catalog_manager.getIndex(File);
+	Index &index = catalog_manager.getIndex(File);
 	BPT<string>* bpt = BPT_String.find(File)->second;
 	bpt->Insert_Key(k, block_num);
 	index.blockNum = bpt->Leaf_num;//¸üÐÂblock_num
@@ -364,7 +364,7 @@ void Index_Manager::Insert(string File, string k, int block_num) {
 
 //É¾³ý²Ù×÷
 void Index_Manager::Delete(string File, int k) {
-	Index index = catalog_manager.getIndex(File);
+	Index &index = catalog_manager.getIndex(File);
 	BPT<int>* bpt = BPT_Int.find(File)->second;
 	bpt->Delete_Key(k);
 	if (index.blockNum > bpt->Leaf_num)
@@ -373,7 +373,7 @@ void Index_Manager::Delete(string File, int k) {
 }
 
 void Index_Manager::Delete(string File, float k) {
-	Index index = catalog_manager.getIndex(File);
+	Index &index = catalog_manager.getIndex(File);
 	BPT<float>* bpt = BPT_Float.find(File)->second;
 	bpt->Delete_Key(k);
 	if (index.blockNum > bpt->Leaf_num)
@@ -382,7 +382,7 @@ void Index_Manager::Delete(string File, float k) {
 }
 
 void Index_Manager::Delete(string File, string k) {
-	Index index = catalog_manager.getIndex(File);
+	Index &index = catalog_manager.getIndex(File);
 	BPT<string>* bpt = BPT_String.find(File)->second;
 	bpt->Delete_Key(k);
 	if (index.blockNum > bpt->Leaf_num)
