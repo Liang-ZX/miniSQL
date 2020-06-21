@@ -1,0 +1,9 @@
+create table students (
+		sno char(8),
+		sname char(16) unique,
+		sage int,
+		sgender char (1),
+		primary key ( sno )
+);
+insert into students values ('12345678','wy',22,'M');
+select * from students;

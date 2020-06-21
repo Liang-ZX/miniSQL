@@ -291,7 +291,7 @@ sqlBlock* BufferManager::getUsableBlock(const string db_name, sqlFile* fileInfo)
 	}
 	writeBlocktoDisk(db_name, blocktmp);
 	blocktmp->sfile->count_of_blockinbuffer--;
-	//cout << blocktmp->blockid << ": " << string(blocktmp->blockdata) << endl; //For test
+	// cout << "LRU sacrifice block id = " << blocktmp->blockid << ": " << string(blocktmp->blockdata) << endl; //For test
 	blocktmp->timestamp = 0;
 	memset(blocktmp->blockdata, 0, BLOCK_SIZE * sizeof(char));
 	remove_from_block_list(blocktmp, fileInfo);

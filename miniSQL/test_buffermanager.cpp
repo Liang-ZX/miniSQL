@@ -3,14 +3,17 @@
 #include <iostream>
 using namespace std;
 // test1 write in the appropriate block
-BufferManager buffer_manager("2333");
+BufferManager buffer_manager("testrecord");
 CatalogManager catalog_manager;
-int main()
+RecordManager record_manager;*/
+/*int main()
 {
 	BufferManager bmanager("test_db");
 	string w_str= "Hello world!\nThis is a buffer manager test\nZhejiang University\n";
 	bmanager.writeFile(w_str, "test", 0, 0);
-	bmanager.deleteFile("test", 0);
+	string ret = bmanager.readFile("test", 0, 0);
+	cout << ret << endl;
+	//bmanager.deleteFile("test", 0);
 	system("pause");
 	return 0;
 }*/
@@ -26,9 +29,9 @@ int main()
 	bmanager.writeFile(w_str2, "LRUtest", 1, 0);
 	bmanager.unsetBlockPin("test", 1, 0);
 	bmanager.writeFile(w_str3, "test", 1, 1);
-	string w_str4 = "new DB test!";
-	string s = bmanager.readFile("test", 1, 0);
-	cout << s << endl;
+	//string w_str4 = "new DB test!";
+	//string s = bmanager.readFile("test", 1, 0);
+	//cout << s << endl;
 	//bmanager.writeFile(w_str4, "hello", 0, 0);
 	system("pause");
 	return 0;
