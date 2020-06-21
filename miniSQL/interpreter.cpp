@@ -55,6 +55,7 @@ int Interpreter::readinCondition(vector<Condition>& ConditionList, Table & table
 					cout << "ERROR: Unsupported Attribute Type " << word << "." << endl;
 					return 1;
 				}
+				break;
 			}
 		}
 		if (found_attr == false) {
@@ -272,7 +273,7 @@ int Interpreter::interprete (string &s)
 			else {
 				vector<Condition> ConditionList;
 				int ret = readinCondition(ConditionList, select_table, s, pos);
-				if (ret == 0) return 1;
+				if (ret == 1) return 1;
 				api->selectRecord(tableName, ConditionList);
 				return 0;
 			}
@@ -332,7 +333,7 @@ int Interpreter::interprete (string &s)
 			{
 				vector<Condition> ConditionList;
 				int ret = readinCondition(ConditionList, delete_table, s, pos);
-				if (ret == 0) return 1;
+				if (ret == 1) return 1;
 				api->deleteRecord(tableName, ConditionList);
 				return 0;
 			}
