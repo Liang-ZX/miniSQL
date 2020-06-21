@@ -554,10 +554,11 @@ bool RecordManager::CheckUnique(const Table &table,const Tuple &tuple)
             BlocktoTuples(table,block_data,TupleList);
         }
     int tuple_num = TupleList.size();
-    Index_Manager index_manager(table.name);
+    //Index_Manager index_manager(table.name);
     for(int i = 0;i < unique_num;i++)
     {
-        if (table.attributes[unique[i]].hasindex == false)   //without index. scan linearly
+        // if (table.attributes[unique[i]].hasindex == false)   //without index. scan linearly
+        if(1)
         {
             for (int tuple_id = 0; tuple_id < tuple_num; tuple_id++)
             {
@@ -571,7 +572,7 @@ bool RecordManager::CheckUnique(const Table &table,const Tuple &tuple)
                 if (flag) return 0;
             }
         }
-        else //with index to check if exists
+        /*else //with index to check if exists
         {
             Index index = catalog_manager.getIndex(table.name, unique[i]);
             int temp;
@@ -584,7 +585,7 @@ bool RecordManager::CheckUnique(const Table &table,const Tuple &tuple)
             else if (index.type > 0 && index.type < 256)
                 if (index_manager.Search(index.indexName, tuple.ItemList[unique[i]].str_data, temp)) return 0;
                 else;
-        }
+        }*/
     }
     return 1;
 }
