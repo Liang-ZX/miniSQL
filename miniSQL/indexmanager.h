@@ -18,7 +18,7 @@ public:
 	//从硬盘中读取已存在的索引文件
 	void Read_Index(string File, Type type, int n = 0);
 	//创建索引文件, n为char(n)中的n，column为属性所在的列数(从0计数)
-	void Create_Index(string File, int column, Type type, int n = 0);
+	void Create_Index(string File, int column, Type type, Index &index, int n = 0);
 	//删除索引文件
 	void Drop_Index(string File, Type type);
 	//删除全部索引文件

@@ -132,9 +132,8 @@ void Index_Manager::Read_Index(string File, Type type, int n) {//¶ÁÈ¡Ó²ÅÌÖĞµÄË÷Ò
 	}
 }
 
-void Index_Manager::Create_Index(string File, int column, Type type, int n) {
+void Index_Manager::Create_Index(string File, int column, Type type, Index& index, int n) {
 	Table &table = catalog_manager.getTable(Table_name);
-	Index &index = catalog_manager.getIndex(File);
 	////Î¬»¤hasindex
 	//table.attributes[column].hasindex = true;
 	//Index index;

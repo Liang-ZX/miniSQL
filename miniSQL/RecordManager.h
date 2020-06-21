@@ -31,6 +31,7 @@ private:
     */
     template<typename T>
     bool CheckConditionData(const T &item_data,Relation relation,const T &condition_data) const;
+    // bool CheckConditionData(const string &item_data,Relation relation,const string &condition_data)const
     /**
      * auxiliary function
      * Function:Check if an item is fit a condition
@@ -76,7 +77,7 @@ private:
      * auxiliary function
      * Function: Convert data(string) in a block to vector<Tuple> stored in tuplelist
     */
-    int BlocktoTuples(const Table &table,string &block_data,vector<Tuple> TupleList)const;
+    int BlocktoTuples(const Table &table,string &block_data,vector<Tuple> &TupleList)const;
     /**
      * auxiliary function
      * Function: Select Record(string) in a  block_data(string) stored in res(string)

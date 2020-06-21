@@ -95,12 +95,12 @@ void CatalogManager::dropTable(Table table) {	//drop the table from the catalog
 }
 
 void CatalogManager::dropTable(string tableName) {	//drop the table by name	
-	for (int i = 0; i < tableNum; i++)
+	for (int i = tableNum - 1; i >= 0; i--)
 		if (tables[i].name == tableName) {
 			tables.erase(tables.begin() + i);
 			tableNum--;
 		}
-	for (int i = 0; i < indexNum; i++)	//drop indexes on the table
+	for (int i = indexNum - 1; i >= 0; i--)	//drop indexes on the table
 		if (indexes[i].tableName == tableName) {
 			indexes.erase(indexes.begin() + i);
 			indexNum--;
@@ -112,7 +112,7 @@ void CatalogManager::dropIndex(Index index) {	//drop the index from the catalog
 }
 
 void CatalogManager::dropIndex(string indexName) {	//drop the index by name
-	for (int i = 0; i < indexNum; i++)
+	for (int i = indexNum - 1; i >= 0; i--)
 		if (indexes[i].indexName == indexName) {
 			indexes.erase(indexes.begin() + i);
 			indexNum--;
