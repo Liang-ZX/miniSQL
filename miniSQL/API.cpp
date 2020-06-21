@@ -30,7 +30,7 @@ void API::createTable(Table& table)
 			catalog_manager.createIndex(index);
 			index_manager.Create_Index(index.indexName, index.column, checkType(index.type), index.type);
 //			cout << index.indexName << endl;
-		}
+		}  
 	
 	cout << "Table " << table.name << " has been created successfully!\n";
 	return;
@@ -71,8 +71,13 @@ void API::selectRecord(const string& tableName)
 		return;
 	}
 	string res;
-	record_manager.SelectRecord(tableName, res);
-	show(res);
+	int num = record_manager.SelectRecord(tableName, res);
+	if (num == -1) return;
+	else if (num == 0) {
+		cout << "No data is found!\n";
+		return;
+	}
+	else show(tableName, res, num);
 }
 
 //interpreter根据信息建立vector<Condition>并传入
@@ -84,8 +89,13 @@ void API::selectRecord(const string& tableName, const vector<Condition>& Conditi
 		return;
 	}
 	string res;
-	if (record_manager.SelectRecord(tableName, ConditionList, res) == -1) return;
-	show(res);
+	int num = record_manager.SelectRecord(tableName, ConditionList, res);
+	if (num == -1) return;
+	else if (num == 0) {
+		cout << "No data is found!\n";
+		return;
+	}
+	else show(tableName, res, num);
 }
 
 void API::deleteRecord(const string& tableName)
@@ -164,7 +174,69 @@ Type API::checkType(int type)
 	else return FLOAT;
 }
 
-void API::show(string& res)
-{
+void API::show(string tableName, string& res, int num) {
 	cout << res << endl;
+	/*	Table table = catalog_manager.getTable(tableName);
+	int* p = new int[table.attriNum];
+	int temp;
+	for (int i = 0; i < table.attriNum; i++) {		
+		p[i] = table.attributes[i].name.length();
+//		cout << table.attributes[i].name << " " << p[i] << endl;
+	}
+		
+	int data_length = res.length();
+	int pos = 1, h = 1, spa = 0;
+	for (int i = 0; i < num; i++) {
+		for (int j = 0; j < table.attriNum; j++) {
+			while (pos < data_length && res[pos] != ITEM_SEPARATOR && res[pos] != RECORD_SEPARATOR) {
+				pos++;
+			}
+			if (pos - h > p[j]) p[j] = pos - h;
+			cout << res.substr(h, pos - 1) << " " << pos - h << " " << p[j] << endl;
+			pos++; h = pos;
+		}
+		pos += 3; h = pos;
+	}
+	showl(table.attriNum, p);
+	for (int i = 0; i < table.attriNum; i++) {
+		cout << "|"; 
+		spa = p[i] - table.attributes[i].name.length() + 2;
+		shows(spa / 2);
+		cout << table.attributes[i].name;
+		shows(spa - spa / 2);
+	}
+	cout << "|\n";
+	h = pos = 0;
+	for (int i = 0; i < num; i++) {
+		showl(table.attriNum, p);
+		for (int j = 0; j < table.attriNum; j++) {
+			while (pos < data_length && res[pos] != ITEM_SEPARATOR && res[pos] != RECORD_SEPARATOR) {
+				pos++;
+			}
+			cout << "|";
+			spa = p[i] - (pos - h) + 2;
+			shows(spa / 2);
+			cout << res.substr(h, pos - 1);
+			shows(spa - spa / 2);
+			pos++; h = pos;
+		}
+		cout << "|\n";
+	}
+*/
+}
+
+void API::showm(int num) {
+	for (int i = 0; i < num; i++) cout << "-";
+}
+
+void API::shows(int num) {
+	for (int i = 0; i < num; i++) cout << " ";
+}
+
+void API::showl(int num, int* p) {
+	for (int i = 0; i < num; i++) {
+		cout << "+";
+		showm(p[i] + 2);
+	}
+	cout << "+\n";
 }
