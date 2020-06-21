@@ -536,11 +536,17 @@ bool RecordManager::CheckUnique(const Table &table,const Tuple &tuple)
     if(unique.size() == 0) return 1;        //no unique column
     int unique_num = unique.size();
     vector<Tuple> TupleList;
-    for(int block_num = 0;block_num < table.blockNum;block_num++)       //conver all records into tuplelist
+    bool NeedConvert = 0;                    //if any unique attribut does not have index, we need to convert all records
+    for (int i = 0; i < unique_num; i++)
     {
-        string block_data = buffer_manager.readFile(table.name,0,block_num);
-        BlocktoTuples(table,block_data,TupleList);
+        if (table.attributes[unique[i]].hasindex == false) NeedConvert = 1;
     }
+    if(NeedConvert)
+        for(int block_num = 0;block_num < table.blockNum;block_num++)       //convert all records into tuplelist
+        {
+            string block_data = buffer_manager.readFile(table.name,0,block_num);
+            BlocktoTuples(table,block_data,TupleList);
+        }
     int tuple_num = TupleList.size();
     Index_Manager index_manager(table.name);
     for(int i = 0;i < unique_num;i++)
