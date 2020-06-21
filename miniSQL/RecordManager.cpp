@@ -95,6 +95,7 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
             catalog_manager.getIndex(TableName,IndexList);
             if(IndexList.size() == 0) break;
             Index_Manager index_manager(TableName);
+            if(IndexList.size() > 0)
             for(int i = 0;i < IndexList.size();i++)    //insert data to all indexes
             {
                 int column = IndexList[i].column;
@@ -370,6 +371,7 @@ const Tuple RecordManager::RecordtoTuple(const Table &table,const string &Record
 
 bool RecordManager::CheckConditionList(const Table &table,const Tuple &tuple,const vector<Condition> &ConditionList) const
 {
+    if(ConditionList.size() > 0)
     for(int condition_id = 0;condition_id < ConditionList.size();condition_id++)
     {
         bool flagExist = 0;
@@ -593,6 +595,7 @@ int RecordManager::GetRecordBlock(const Table &table,Index_Manager &index_manage
     catalog_manager.getIndex(table.name,IndexList);
     if(IndexList.size() == 0) return -1;
     // for(int i = 0)
+    if(ConditionList.size() > 0)
     for(int i = 0;i < ConditionList.size();i++) if(ConditionList[i].relation == EQUAL)
     {
         int column = catalog_manager.getColumn(table,ConditionList[i].AttrName);
@@ -629,6 +632,7 @@ int RecordManager::GetRecordBlock(const Table &table,Index_Manager &index_manage
     }
     //区间查找
     bool first = 1;
+    if(IndexList.size() > 0)
     for(int i = 0;i < IndexList.size();i++)
     {
         Item minItem,maxItem;
@@ -673,6 +677,7 @@ bool RecordManager::GetIndexRange(const Table &table,const Index &index,const ve
     // minItem.str_data.assign("");
     // maxItem.str_data.assign("");
     bool flag = 0;
+    if(Conditionlist.size() > 0)
     for(int i = 0;i < Conditionlist.size();i++)
     {
         int column = catalog_manager.getColumn(table,Conditionlist[i].AttrName);
