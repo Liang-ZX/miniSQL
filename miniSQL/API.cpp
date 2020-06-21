@@ -28,8 +28,8 @@ void API::createTable(Table& table)
 			tb.attributes[i].hasindex = true;
 			tb.attributes[i].isUnique = true;
 
+			index_manager.Create_Index(index.indexName, index.column, checkType(index.type), index, index.type);
 			catalog_manager.createIndex(index);
-			index_manager.Create_Index(index.indexName, index.column, checkType(index.type), index.type);
 		}  
 	
 	cout << "Table '" << table.name << "' has been created successfully!\n";
@@ -149,9 +149,9 @@ void API::createIndex(Index& index)
 	}
 	else  table.attributes[index.column].hasindex = true;
 	
-	catalog_manager.createIndex(index);
 	Index_Manager index_manager(index.tableName);
-	index_manager.Create_Index(index.indexName, index.column, checkType(index.type), index.type);
+	index_manager.Create_Index(index.indexName, index.column, checkType(index.type), index, index.type);
+	catalog_manager.createIndex(index);
 	cout << "Index '" << index.indexName << "' has been created successfully!\n";
 }
 
