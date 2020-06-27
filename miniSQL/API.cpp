@@ -67,19 +67,19 @@ void API::insertRecord(const string& tableName, const Tuple& tuple)
 void API::selectRecord(const string& tableName)
 {
 	if (catalog_manager.existTable(tableName) == false) {
-		cout << "ERROR: Table '" << tableName << "' does not exist!\n";
+		cout << "ERROR: Table '" << tableName << "' does not exist!";
 		return;
 	}
 	string res;
 	int num = record_manager.SelectRecord(tableName, res);
 	if (num == -1) return;
 	else if (num == 0) {
-		cout << "Empty set.\n";
+		cout << "Empty set.";
 		return;
 	}
 	show(tableName, res, num);
-	if (num == 1) cout << num << " row in set.\n";
-	else cout << num << " rows in set.\n";
+	if (num == 1) cout << num << " row in set.";
+	else cout << num << " rows in set.";
 }
 
 //interpreter根据信息建立vector<Condition>并传入
@@ -87,7 +87,7 @@ void API::selectRecord(const string& tableName)
 void API::selectRecord(const string& tableName, const vector<Condition>& ConditionList)
 {
 	if (catalog_manager.existTable(tableName) == false) {
-		cout << "ERROR: Table '" << tableName << "' does not exist!\n";
+		cout << "ERROR: Table '" << tableName << "' does not exist!";
 		return;
 	}
 	string res;
@@ -96,12 +96,12 @@ void API::selectRecord(const string& tableName, const vector<Condition>& Conditi
 		return;
 	}
 	else if (num == 0) {
-		cout << "Empty set.\n";
+		cout << "Empty set.";
 		return;
 	}
 	show(tableName, res, num);
-	if (num == 1) cout << num << " row in set.\n";
-	else cout << num << " rows in set.\n";
+	if (num == 1) cout << num << " row in set.";
+	else cout << num << " rows in set.";
 }
 
 void API::deleteRecord(const string& tableName)

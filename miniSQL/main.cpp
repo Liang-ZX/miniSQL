@@ -30,6 +30,7 @@ int main()
 					break; //quit
 			}
 			file.close();
+			cout << endl;
 			readFile = 0;
 			interpreter.execFile = "";
 			if (status == 200)
@@ -46,8 +47,8 @@ int main()
 				readFile = true;
 			}
 			else {
-				if( status == 0)
-					cout << "query OK" << endl;
+				if (status == 0)
+					cout << "Query OK." << endl << endl;
 			}
 		}
 	}

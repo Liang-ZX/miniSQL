@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
 #include "CatalogManager.h"
 #include "API.h"
 using namespace std;

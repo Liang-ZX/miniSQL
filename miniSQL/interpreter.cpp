@@ -101,6 +101,8 @@ int Interpreter::interprete (string &s)
 	{
 		int pos = 0;
 		string word;
+		clock_t start, end;
+		double duration = 0;
 
 		word = getWord(s, pos);
 		if (word == "create")
@@ -287,7 +289,11 @@ int Interpreter::interprete (string &s)
 
 			word = getWord(s, pos);
 			if (word.empty()) {		//without condition
+				start = clock();
 				api->selectRecord(tableName);
+				end = clock();
+				duration = (double)(end - start);
+				printf(" (%.2f sec)\n", duration);
 				return 0;
 			}
 			else if (word != "where")
@@ -296,7 +302,11 @@ int Interpreter::interprete (string &s)
 				vector<Condition> ConditionList;
 				int ret = readinCondition(ConditionList, select_table, s, pos);
 				if (ret == 1) return 1;
+				start = clock();
 				api->selectRecord(tableName, ConditionList);
+				end = clock();
+				duration = (double)(end - start);
+				printf(" (%.2f sec)\n", duration);
 				return 0;
 			}
 		}

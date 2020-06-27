@@ -8,3 +8,4 @@ miniSQL.sln
 miniSQL/miniSQL.*
 miniSQL/x64/*
 x64/*
+miniSQL/tests/*
