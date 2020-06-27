@@ -95,7 +95,7 @@ int Interpreter::readinCondition(vector<Condition>& ConditionList, Table & table
 	return 0;
 }
 
-int Interpreter::interprete (string &s)
+int Interpreter::interprete (string &s, bool exec_file)
 {
 	try
 	{
@@ -446,6 +446,7 @@ int Interpreter::interprete (string &s)
 			if (word != ")")
 				throw SyntaxError();
 			api->insertRecord(tableName, insertTuple);
+			if (!exec_file) cout << endl;
 			return 0;
 		}
 		else if (word == "quit") {

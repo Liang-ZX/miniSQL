@@ -56,12 +56,12 @@ void API::dropTable(const string& tableName)
 void API::insertRecord(const string& tableName, const Tuple& tuple)
 {
 	if (catalog_manager.existTable(tableName) == false) {
-		cout << "ERROR: Table '" << tableName << "' does not exist!\n";
+		cout << "ERROR: Table '" << tableName << "' does not exist!";
 		return;
 	}
 
 	if (record_manager.InsertRecord(tableName, tuple) == -1) return;
-	cout << "Record has been inserted successfully!\n";
+	cout << "Record has been inserted successfully!";
 }
 
 void API::selectRecord(const string& tableName)

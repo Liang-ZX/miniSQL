@@ -58,7 +58,7 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
         #ifdef DEBUG_ON
         end_time = clock();
         cout << end_time - begin_time << "ms\n";
-        cout << "ERROR(Record):The table does not exit.\n";
+        cout << "ERROR(Record):The table does not exit.";
         #endif
         return 0;
     }
@@ -67,20 +67,20 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
     Table &table = catalog_manager.getTable(TableName);
     if (CheckAttribute(table,tuple.GetItemList()) == false)
     {
-        cout << "ERROR: Incorrect attribute values!\n";
+        cout << "ERROR: Incorrect attribute values!";
         return -1;
     }
     //check unique attributes
     if(CheckUnique(table,tuple) == false)
     {
-        cout << "ERROR: Duplicate entry!\n";
+        cout << "ERROR: Duplicate entry!";
         return -1;
     }
     //start insert record
     string record;
     record.assign(tuple.TupletoString());       //get record in string
     #ifdef DEBUG_ON
-    cout << "Debug(Record):Begin insert record.\n";
+    cout << "Debug(Record):Begin insert record.";
     #endif
     int record_length = record.length();
     if (table.blockNum == 0) table.blockNum++;        //if the table is empty, we need to create a block first
@@ -114,7 +114,7 @@ int RecordManager::InsertRecord(const string &TableName,const Tuple &tuple)
     #ifdef DEBUG
     end_time = clock();
     cout << end_time - begin_time << "ms\n";
-    cout << "Debug(Record):End insert record.\n";
+    cout << "Debug(Record):End insert record.";
     #endif
     return 1;
 }

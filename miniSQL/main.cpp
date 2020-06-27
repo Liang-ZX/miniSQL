@@ -15,8 +15,9 @@ int main()
 	string query;
 	while (true)
 	{
-		int status = 0;
+		int status = 0, insert_cnt=0;
 		if (readFile) {
+			insert_cnt = 0;
 			file.open(interpreter.execFile);
 			if (!file.is_open()) {
 				cout << "Fail to open file '" << interpreter.execFile << "'." << endl;
@@ -25,7 +26,9 @@ int main()
 			}
 			while (getline(file, query, ';'))
 			{
-				status = interpreter.interprete(query);
+				status = interpreter.interprete(query, true);
+				if (query.find("insert") != query.npos)
+					cout << "(" << insert_cnt++ << ")\n";
 				if (status == 200)
 					break; //quit
 			}
