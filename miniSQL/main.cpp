@@ -20,7 +20,7 @@ int main()
 			insert_cnt = 0;
 			file.open(interpreter.execFile);
 			if (!file.is_open()) {
-				cout << "Fail to open file '" << interpreter.execFile << "'." << endl;
+				cout << "Fail to open file '" << interpreter.execFile << "'." << endl << endl;
 				readFile = false;
 				continue;
 			}
@@ -50,8 +50,7 @@ int main()
 				readFile = true;
 			}
 			else {
-				if (status == 0)
-					cout << "Query OK." << endl << endl;
+				cout << endl;
 			}
 		}
 	}

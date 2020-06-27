@@ -257,6 +257,7 @@ int Interpreter::interprete (string &s, bool exec_file)
 				if ((word = getWord(s, pos)) != ")")
 					throw SyntaxError();
 				api->createIndex(newIndex);
+				cout << endl;
 				return 1;
 			}else{
 				throw SyntaxError();
@@ -294,6 +295,7 @@ int Interpreter::interprete (string &s, bool exec_file)
 				end = clock();
 				duration = (double)(end - start);
 				printf(" (%.2f sec)\n", duration);
+				if (exec_file) cout << endl;
 				return 0;
 			}
 			else if (word != "where")
@@ -307,6 +309,7 @@ int Interpreter::interprete (string &s, bool exec_file)
 				end = clock();
 				duration = (double)(end - start);
 				printf(" (%.2f sec)\n", duration);
+				if (exec_file) cout << endl;
 				return 0;
 			}
 		}
