@@ -11,7 +11,7 @@ Index_Manager::Index_Manager(string Table_name) : Table_name(Table_name) {
 		else if (index[i].type == -1) 
 			Read_Index(index[i].indexName, FLOAT);
 		else 
-			Read_Index(index[i].indexName, STRING);
+			Read_Index(index[i].indexName, STRING, index[i].type);
 	}
 }
 
