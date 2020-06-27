@@ -286,7 +286,7 @@ sqlBlock* BufferManager::getUsableBlock(const string db_name, sqlFile* fileInfo)
 	}
 	if (blocktmp == nullptr)
 	{
-		cout << "ERROR(buffer manager): getUsableBlock error: All Blocks are pinned!" << endl;
+		cout << "ERROR(buffer manager): getUsableBlock error: Blocks are all pinned!" << endl;
 		return nullptr;
 	}
 	writeBlocktoDisk(db_name, blocktmp);
@@ -308,7 +308,12 @@ void BufferManager::remove_from_block_list(sqlBlock * block, sqlFile* newfileInf
 			removeFileInfo(block->sfile);
 		}
 	}
-	else {
+	else if (blocktmp == block)
+	{
+		blocktmp->sfile->blockhead = blocktmp->nextblock;
+	}
+	else 
+	{
 		while (blocktmp != nullptr)
 		{
 			if (blocktmp->nextblock == block)

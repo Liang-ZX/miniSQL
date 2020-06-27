@@ -25,10 +25,10 @@ int main()
 	string w_str1 = "Hello world!\nZhejiang University\nThis is a new test.\n";
 	string w_str2 = "This is a test!\nWe test the LRU.\n";
 	string w_str3 = "LRU is a widly-used memory exchange method\n";
-	bmanager.writeFile(w_str1, "test", 1, 0, true);
-	bmanager.writeFile(w_str2, "LRUtest", 1, 0);
-	bmanager.unsetBlockPin("test", 1, 0);
-	bmanager.writeFile(w_str3, "test", 1, 1);
+	bmanager.writeFile(w_str1, "test", 1, 0);
+	bmanager.writeFile(w_str2, "test", 1, 1);
+	//bmanager.unsetBlockPin("test", 1, 0);
+	bmanager.writeFile(w_str3, "test", 1, 2);
 	//string w_str4 = "new DB test!";
 	//string s = bmanager.readFile("test", 1, 0);
 	//cout << s << endl;
