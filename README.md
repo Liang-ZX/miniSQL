@@ -129,7 +129,7 @@ execfile 文件名;
 
 #### 2.1   总体设计：
 
-![img](file:///C:/Users/dell/AppData/Local/Temp/msohtmlclip1/01/clip_image002.jpg)
+![img](https://github.com/Liang-ZX/miniSQL/blob/master/clip_image002.jpg)
 
 主程序main初始化Buffer Manager对象, Catalog Manager对象,Record Manager对象实例；读入用户输入，调用Interpreter模块进行解释。
 
@@ -151,7 +151,9 @@ Interpreter模块的核心是执行语义解析和语法检查，同时完成包
 
 在语义解析方面，参考https://github.com/callMeName/MiniSql 实现了getWord函数，实现了对用户的输入进行字符串拆分，逐关键字返回的功能。 
 
-![img](file:///C:/Users/dell/AppData/Local/Temp/msohtmlclip1/01/clip_image004.jpg)
+```c++
+string Interpreter::getWord(string &s, int &pos)
+```
 
 具体实现上，getWord只会返回逐个单词，以及“,”、“(”和“)”三种运算符，自动过滤其余运算符。所有返回的内容都会被解析为string，需要interprete执行类型转换。
 
@@ -244,9 +246,9 @@ Buffer Manager同时维护一个sqlBlock* Pool[bnum]用来储存所有分配的�
 ###### 2.7.5.1 LRU
 
 不论是ReadFile还是WriteFile都会打开相应文件，然后尝试找到一个块，把文件内容写入缓存中。寻找块会调用私有方法
-
-![img](file:///C:/Users/dell/AppData/Local/Temp/msohtmlclip1/01/clip_image006.jpg)
-
+```c++
+sqlBlock* getUsableBlock(const string db_name, sqlFile* fileInfo); //LRU here
+```
 该函数会先在已有的缓存中查找，若已有该块数据则返回对应的sqlBlock*,否则检查已分配的块数量是否已经超过了允许的上限，若否，则重新malloc一个块来存放数据；若是，则使用LRU算法替换least recently used的块，将其内容写回磁盘（脏写），然后读入要处理的数据。同时对其它已在缓存区中的数据块执行时间戳更新，以保证一致性。
 
 此外，如果块已经上锁，则不允许换出，除了在关闭数据库时，会强制释放，否则必须手动解锁后，才能换出。
